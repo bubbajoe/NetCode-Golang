@@ -1,0 +1,5 @@
+.CodeMirror-fullscreen {
+  position: fixed;
+  top: calc(0vh + 80px); left: 0; right: 0; bottom: 50px;
+  z-index: 100;
+}

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>NetCode</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<link rel="shortcut icon" href="assets/images/gt_favicon.png">
+	<link rel="stylesheet" media="screen" href="http://fonts.googleapis.com/css?family=Open+Sans:300,400,700">
+	<link rel=stylesheet href="codemirror/lib/codemirror.css">
+	<link rel=stylesheet href="codemirror/doc/docs.css">
+	<link rel="stylesheet" href="codemirror/addon/display/fullscreen.css">
+
+	{{ template "themes.html" . }}
+
+	<script src="codemirror/lib/codemirror.js"></script>
+	<script src="codemirror/mode/xml/xml.js"></script>
+	<script src="codemirror/mode/javascript/javascript.js"></script>
+	<script src="codemirror/addon/display/fullscreen.js"></script>
+	<script src="codemirror/mode/css/css.js"></script>
+	<script src="codemirror/mode/htmlmixed/htmlmixed.js"></script>
+	<script src="codemirror/addon/edit/matchbrackets.js"></script>
+	<!-- Custom styles for our template -->
+	<link rel="stylesheet" href="assets/css/bootstrap-theme.css" media="screen" >
+	<link rel="stylesheet" href="assets/css/main.css">
+	<!-- Added by me-->
+	<link rel="stylesheet" href="css/style.css">
+	<!-- Font Awesome-->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular.min.js"></script>
+
+	<title>NetCode</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<link rel="stylesheet" href="assets/css/bootstrap-theme.css" media="screen" >
+	<link rel="stylesheet" href="assets/css/main.css">
+
+	<style>
+		.home {
+			margin-top: 100px;
+		}
+		#bottom-editor {
+			background-color: red;
+			border-top: 2px solid white;
+			border-bottom: 2px solid white;
+		}
+		div#navbar {
+			z-index: 10;
+		}
+		#code{
+			z-index: 0;
+			position: relative;
+		}
+		.CodeMirror-fullscreen {
+			position: fixed;
+			top: 0; left: 0; right: 0; bottom: 0;
+			height: auto;
+			z-index: 9;
+		}
+	</style>
+</head>
+
+<body class="home">
+	<!-- Fixed navbar -->
+	{{ template "navbar.html" . }}
+	<!-- /.navbar -->
+	<div class="container" style="min-height:500px;">
+	<h1 style="text-align:center;color:#999999;margin:0 0 20px 0">
+		{language} : {filename} </h1>
+	<form style="position: relative; margin-top: .5em;">
+	
+	<textarea id=netcode>
+	<!-- Create a simple CodeMirror instance -->
+	<link rel="stylesheet" href="lib/codemirror.css">
+	<script src="lib/codemirror.js"></script>
+	</textarea>
+
+	</form>
+  <script>
+    var editor = CodeMirror.fromTextArea(document.getElementById("netcode"), {
+      lineNumbers: true,
+	  mode: "text/javascript",
+	  styleActiveLine: true,
+      matchBrackets: true,
+      theme: "night",
+      extraKeys: {
+        "F11": function(cm) {
+          cm.setOption("fullScreen", !cm.getOption("fullScreen"));
+        },
+        "Esc": function(cm) {
+          if (cm.getOption("fullScreen")) cm.setOption("fullScreen", false);
+        }
+      }
+    });
+  </script>
+
+	<script>
+		var input = document.getElementById("select");
+		function selectTheme() {
+			var theme = input.options[input.selectedIndex].textContent;
+			editor.setOption("theme", theme);
+			location.hash = "#" + theme;
+		}
+		var choice = (location.hash && location.hash.slice(1)) ||
+					(document.location.search &&
+						decodeURIComponent(document.location.search.slice(1)));
+		if (choice) {
+			input.value = choice;
+			editor.setOption("theme", choice);
+		}
+	</script>
+
+	{{ template "theme-options.html" . }}
+
+<script>
+	var editor = CodeMirror.fromTextArea(document.getElementById("netcode"), {
+		lineNumbers: true,
+		styleActiveLine: true,
+		matchBrackets: true
+	});
+	var input = document.getElementById("select");
+	function selectTheme() {
+		var theme = input.options[input.selectedIndex].textContent;
+		editor.setOption("theme", theme);
+		location.hash = "#" + theme;
+	}
+	var choice = (location.hash && location.hash.slice(1)) ||
+				(document.location.search &&
+					decodeURIComponent(document.location.search.slice(1)));
+	if (choice) {
+		input.value = choice;
+		editor.setOption("theme", choice);
+	}
+	CodeMirror.on(window, "hashchange", function() {
+		var theme = location.hash.slice(1);
+		if (theme) { input.value = theme; selectTheme(); }
+	});
+</script>
+</select>
+</p>
+</div>	<!-- /container -->
+{{ template "footer.html" . }}
+<!-- JavaScript libs are placed at the end of the document so the pages load faster -->
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+<script src="http://code.jquery.com/jquery-latest.min.js"></script>
+<script src="assets/js/headroom.min.js"></script>
+<script src="assets/js/jQuery.headroom.min.js"></script>
+<script src="assets/js/template.js"></script>
+<script src="js/script.js"></script>
+<script src="js/live-editor.js"></script>
+<script src="socket.io/socket.io.js"></script>
+
+	
+</body>
+</html>

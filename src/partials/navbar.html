@@ -1,0 +1,46 @@
+{{ if not .username}}
+<div id='navbar' class="navbar navbar-inverse navbar-default navbar-fixed-top headroom" >
+		<div class="container" style="margin-top:0px">
+
+			<div style="margin-top:-0px">
+				
+				<div>
+					<a href="/"><img src="assets/images/NetCode.gif" height="50px"/> </a>
+				</div>
+
+				<ul class="nav navbar-nav btn-group pull-right" style="width:200px">
+					<li><a id="nav_loginbtn" class="btn" href="login">Log in</a></li>
+					<li><a id="nav_regbtn" class="btn" href="register">Register</a></li>
+				</ul>
+
+				<ul  id="navbar" class="collapse navbar-collapse nav navbar-nav pull-right">
+					<li><a id="nav_codebtn" href="code">Code</a></li>
+					<li><a id="nav_projbtn" href="projects">Projects</a></li>
+					<li><a id="nav_netcodebtn" href="netcode">Netcode Live</a></li>
+				</ul>
+			</div>
+		</div>
+	</div>
+{{ else }}
+<div id='navbar' class="navbar navbar-inverse navbar-default navbar-fixed-top headroom" >
+		<div class="container" style="margin-top:0px">
+
+			<div style="margin-top:-0px">
+				
+				<div>
+					<a href="/"><img src="assets/images/NetCode.gif" height="50px"/> </a>
+				</div>
+
+				<ul class="nav navbar-nav btn-group pull-right" style="width:200px">
+					<li><a id="nav_loginbtn" class="btn" href="logout">Log out</a></li>
+				</ul>
+
+				<ul  id="navbar" class="collapse navbar-collapse nav navbar-nav pull-right">
+					<li><a id="nav_codebtn" href="code">Code</a></li>
+					<li><a id="nav_projbtn" href="projects">Projects</a></li>
+					<li><a id="nav_netcodebtn" href="netcode">Netcode Live</a></li>
+				</ul>
+			</div>
+		</div>
+	</div>
+{{ end }}

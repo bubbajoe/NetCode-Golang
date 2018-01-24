@@ -1,0 +1,48 @@
+#slideshow {
+
+    box-shadow: 0 0 20px rgba(0,0,0,0.4); 
+}
+
+body{
+    background-color: lightgrey;
+}
+
+#quote{
+
+    margin-left: 200px;
+    text-align: center;
+
+
+}
+
+#quote1{
+	font-size: 30px;
+  
+}
+
+#top {
+
+	margin-top: 100px;
+}
+
+
+#juned{
+
+	margin-top:100px;
+}
+
+#bagade{
+
+	margin-top: 30px;
+    
+}
+
+#btnGetTV{
+    margin-top: 30px;
+   
+}
+
+#btnGetEpisodes{
+    margin-top: 30px;
+   
+}

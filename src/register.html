@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<title>NetCode</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <link rel="shortcut icon" href="assets/images/gt_favicon.png">
+	<link rel="stylesheet" media="screen" href="http://fonts.googleapis.com/css?family=Open+Sans:300,400,700">
+	<link rel=stylesheet href="codemirror/lib/codemirror.css">
+	<link rel=stylesheet href="codemirror/doc/docs.css">
+	<script src="codemirror/lib/codemirror.js"></script>
+	<script src="codemirror/mode/xml/xml.js"></script>
+	<script src="codemirror/mode/javascript/javascript.js"></script>
+	<script src="codemirror/mode/css/css.js"></script>
+	<script src="codemirror/mode/htmlmixed/htmlmixed.js"></script>
+	<script src="codemirror/addon/edit/matchbrackets.js"></script>
+	<!-- Custom styles for our template -->
+	<link rel="stylesheet" href="assets/css/bootstrap-theme.css" media="screen" >
+	<link rel="stylesheet" href="assets/css/main.css">
+	<!-- Added by me-->
+	<link rel="stylesheet" href="css/style.css">
+	<!-- Font Awesome-->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular.min.js"></script>
+	<title>NetCode</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+
+	<!-- Custom styles for our template -->
+	<link rel="stylesheet" href="assets/css/bootstrap-theme.css" media="screen" >
+	<link rel="stylesheet" href="assets/css/main.css">
+
+	<style>
+		#messages {
+		margin-top: 30px;
+		text-align: center;
+		}
+		.wrapper {    
+			margin-top: 80px;
+			margin-bottom: 20px;
+		}
+		ul {
+			padding: 0;
+			list-style-type: none;
+		}
+		ul li {
+			display: inline;
+		}
+		.form-signin {
+		max-width: 420px;
+		padding: 30px 38px 66px;
+		margin: 200px auto 50px auto;
+		background-color: rgb(32, 32, 32);
+		color:darkgray;
+		border: 3px dotted rgba(0,0,0,0.1);  
+		}
+
+		.form-signin-heading {
+		text-align:center;
+		margin-bottom: 30px;
+		}
+
+		.form-control {
+		position: relative;
+		font-size: 16px;
+		height: auto;
+		padding: 10px;
+		}
+
+		input[type="text"] {
+		margin-bottom: 5px;
+		border-bottom-left-radius: 0;
+		border-bottom-right-radius: 0;
+		}
+
+		input[name="Password"] {
+		border-bottom-left-radius: 0;
+		border-bottom-right-radius: 0;
+		border-top-left-radius: 0;
+		border-top-right-radius: 0;
+		margin-bottom: 5px;
+		}
+
+		div {
+			align-content: center;
+
+		}
+
+		input[name="ConfirmPassword"] {
+		border-top-left-radius: 0;
+		border-top-right-radius: 0;
+		margin-bottom: 20px;
+		}
+		.alert-danger {
+		background-color: #ebcccc;
+		margin-bottom: 0px;
+		}
+	</style>
+</head>
+
+<body class="home">
+	<!-- Fixed navbar -->
+	{{ template "navbar.html" . }}
+	<!-- /.navbar -->
+	<div class="container" style="min-height:500px;">
+		<div class="wrapper">
+			<form method="post" name="Signup_Form" class="form-signin">       
+				<h3 class="form-signin-heading">Welcome! Please Sign Up</h3>
+				<input type="text" class="form-control" name="Username" placeholder="Username" pattern="^[A-Za-z0-9_]{1,15}$" 
+				oninvalid='setCustomValidity(`3-16 username with only letters, numbers, and underscores "_"`)'
+				onchange="try{setCustomValidity('')}catch(e){}" required autofocus/>
+				<input type="password" class="form-control" name="Password" placeholder="Password" required=""/>		  
+				<input type="password" class="form-control" name="ConfirmPassword" placeholder="Confirm Password" required=""/>
+				<button class="btn btn-lg btn-primary btn-block"  name="Submit" value="Login" type="Submit">Register</button>
+				{{ .messages }}
+			</form>			
+		</div>
+	</div>
+
+	{{ template "footer.html" . }}
+
+	<!-- JavaScript libs are placed at the end of the document so the pages load faster -->
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+	<script src="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+	<script src="assets/js/headroom.min.js"></script>
+	<script src="assets/js/jQuery.headroom.min.js"></script>
+	<script src="assets/js/template.js"></script>
+	<!-- Added by me -->
+	<script src="js/script.js"></script>
+
+	
+</body>
+</html>
