@@ -5,33 +5,44 @@ import (
 	"os"
 	"log"
 	"time"
-	"strconv"
+	// "tree"
+	"strings"
+	// "strconv"
 	"net/http"
 	// "io/ioutil"
 	"html/template"
-
+	// "encoding/json"
+	"encoding/base64"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 	"github.com/gorilla/mux"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 	"github.com/gorilla/securecookie"
 	"github.com/googollee/go-socket.io"
 )
 
 type User struct {
-	ID bson.ObjectId	`bson:"_id,omitempty"`
-	username string 	`bson:"username"`
-	email string		`bson:"email,omitempty"`
-	password string		`bson:"pass,omitempty"`
-	//extra string		`bson:"extra,omitempty"`
+	ID bson.ObjectId 	`bson:"_id,omitempty"`
+	Username string		`bson:"username"`
+	Firstname string	`bson:"firstname"`
+	Lastname string		`bson:"lastname"`
+	Password string		`bson:"password"`
+}
+
+type Session struct {
+	ID bson.ObjectId 	`bson:"_id,omitempty"`
+	Username string		`bson:"username"`
+	LastActive int64		`bson:"last_active"`
+	SessionID string	`bson:"sessionID"`
 }
 
 var cookieHandler = securecookie.New(
 	securecookie.GenerateRandomKey(64),
-	securecookie.GenerateRandomKey(32),
-)
+	securecookie.GenerateRandomKey(32))
 
-var DB mgo.Database
+var users *mgo.Collection
+var sessions *mgo.Collection
 
 func main() {
 	port := "80"
@@ -43,11 +54,11 @@ func main() {
 	session, err := mgo.Dial("127.0.0.1")
 	if err != nil {
 		log.Fatal("MongoDB Error: ", err)
-		
 	}
-	DB := session.DB("Netcode")
 
-	defer session.Close()
+	users = session.DB("Netcode").C("users")
+	sessions = session.DB("Netcode").C("sessions")
+
 	defer session.Close()
 
 	activeUsers := make(map[string]socketio.Socket)
@@ -81,21 +92,7 @@ func main() {
 
 	r := mux.NewRouter()
 
-	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		start := time.Now()
-		paths := []string{
-			"src/index.html",
-			"src/partials/navbar.html",
-			"src/partials/footer.html" }
-		tmpl := template.Must(template.ParseFiles(paths...))
-		
-		err := tmpl.Execute(w, nil)
-		if err != nil {
-				log.Fatalf("template execution: %s", err)
-				os.Exit(1)
-		}
-		log.Printf(r.Method+" - "+r.URL.Path+" - %v\n",time.Now().Sub(start))
-	})
+	r.HandleFunc("/", homepage)
 
 	r.HandleFunc("/netcode", netcode).Methods("GET")
 	r.HandleFunc("/code", code).Methods("GET")
@@ -118,6 +115,42 @@ func main() {
 	// log.Fatal(http.ListenAndServeTLS(":443", "server.crt", "server.key", nil))
 }
 
+func SetFlash(w http.ResponseWriter, name string, value string) {
+	c := &http.Cookie{Name: name, Value: encode([]byte(value))}
+	http.SetCookie(w, c)
+}
+
+func GetFlash(w http.ResponseWriter, r *http.Request, name string) []byte {
+	c, err := r.Cookie(name)
+	if err != nil {
+		switch err {
+			case http.ErrNoCookie:
+				return nil
+			default:
+				log.Fatal(err)
+				return nil
+		}
+	}
+
+	value, err := decode(c.Value)
+	if err != nil {
+		log.Fatal(err)
+		return nil
+	}
+
+	dc := &http.Cookie{Name: name, MaxAge: -1, Expires: time.Unix(1, 0)}
+	http.SetCookie(w, dc)
+	return value
+}
+
+func encode(src []byte) string {
+  	return base64.URLEncoding.EncodeToString(src)
+}
+
+func decode(src string) ([]byte, error) {
+  	return base64.URLEncoding.DecodeString(src)
+}
+
 // Password to hash
 func HashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 4)
@@ -130,21 +163,37 @@ func CheckPasswordHash(password, hash string) bool {
 	return err == nil
 }
 
-//
+func getID(request *http.Request) (id string) {
+	if cookie, err := request.Cookie("session"); err == nil {
+		cookieValue := make(map[string]string)
+		if err = cookieHandler.Decode("session", cookie.Value, &cookieValue); err == nil {
+			id = cookieValue["id"]
+		}
+	}
+	return id
+}
+
 func getUsername(request *http.Request) (username string) {
 	if cookie, err := request.Cookie("session"); err == nil {
 		cookieValue := make(map[string]string)
 		if err = cookieHandler.Decode("session", cookie.Value, &cookieValue); err == nil {
-			username = cookieValue["name"]
+			id := cookieValue["id"]
+			var sess Session
+			sessions.Find(bson.M{"sessionID":id}).One(&sess)
+			username = sess.Username
 		}
 	}
 	return username
 }
 
-func setSession(userName string, response http.ResponseWriter) {
-	value := map[string]string{
-		"name": userName,
-	}
+func setSession(username string, response http.ResponseWriter) {
+	id := uuid.New().String()
+	sessions.Insert(&Session{
+		SessionID: id,
+		LastActive: time.Now().Unix(),
+		Username: strings.ToLower(username),
+	})
+	value := map[string]string{"id": id}
 	if encoded, err := cookieHandler.Encode("session", value); err == nil {
 		cookie := &http.Cookie{
 			Name:  "session",
@@ -155,7 +204,8 @@ func setSession(userName string, response http.ResponseWriter) {
 	}
 }
 
-func clearSession(response http.ResponseWriter) {
+func clearSession(id string, response http.ResponseWriter) {
+	sessions.Remove(bson.M{"sessionID":id})
 	cookie := &http.Cookie{
 		Name:   "session",
 		Value:  "",
@@ -164,7 +214,47 @@ func clearSession(response http.ResponseWriter) {
 	}
 	http.SetCookie(response, cookie)
 }
+
+type Project struct {
+	ID string
+	Title string
+	Lang string
+	Desc string
+}
+
+type TemplateData struct {
+	Lang string
+	File string
+	Code string
+	Tree template.JS
+	Error string
+	Username string
+}
+
 // Routes
+func homepage(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+	paths := []string{
+		"src/index.html",
+		"src/partials/navbar.html",
+		"src/partials/footer.html" }
+	tmpl := template.Must(template.ParseFiles(paths...))
+
+	homeItems := struct {
+		Username string
+		Projects []Project
+	} {
+		Username: getUsername(r),
+	}
+	
+	err := tmpl.Execute(w, homeItems)
+	if err != nil {
+			log.Fatalf("template execution: %s", err)
+			os.Exit(1)
+	}
+	log.Printf(r.Method+" - "+r.URL.Path+" - %v\n",time.Now().Sub(start))
+}
+
 func netcode(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 	paths := []string{
@@ -172,9 +262,16 @@ func netcode(w http.ResponseWriter, r *http.Request) {
 		"src/partials/navbar.html",
 		"src/partials/footer.html",
 	}
+
 	tmpl := template.Must(template.ParseFiles(paths...))
-	
-	err := tmpl.Execute(w, nil)
+	var data = TemplateData {
+		Lang: "HTML",
+		File: "netcode.html",
+		Code: `let welcomeTo = "Netcode"`,
+		Tree: `[{text:"Folder 1",nodes:[{text:"Folder 2",nodes:[{text:"File 1"}]},{text:"File 2"}]},{text:"Folder 3"},{text:"Folder 4"}]`,
+		Username: getUsername(r),
+	}
+	err := tmpl.Execute(w, data)
 	if err != nil {
 			log.Fatalf("template execution: %s", err)
 	}
@@ -190,8 +287,10 @@ func code(w http.ResponseWriter, r *http.Request) {
 		"src/partials/navbar.html",
 		"src/partials/footer.html" }
 	tmpl := template.Must(template.ParseFiles(paths...))
-	
-	err := tmpl.Execute(w, nil)
+	var data = TemplateData {
+		Username: getUsername(r),
+	}
+	err := tmpl.Execute(w, data)
 	if err != nil {
 			log.Fatalf("template execution: %s", err)
 	}
@@ -205,8 +304,10 @@ func projects(w http.ResponseWriter, r *http.Request) {
 		"src/partials/navbar.html",
 		"src/partials/footer.html" }
 	tmpl := template.Must(template.ParseFiles(paths...))
-	
-	err := tmpl.Execute(w, nil)
+	var data = TemplateData {
+		Username: getUsername(r),
+	}
+	err := tmpl.Execute(w, data)
 	if err != nil {
 			log.Fatalf("template execution: %s", err)
 	}
@@ -220,8 +321,15 @@ func login(w http.ResponseWriter, r *http.Request) {
 		"src/partials/navbar.html",
 		"src/partials/footer.html" }
 	tmpl := template.Must(template.ParseFiles(paths...))
-	
-	err := tmpl.Execute(w, nil)
+
+	var data = struct{
+		Error string
+		Username string
+	} {
+		Error: string(GetFlash(w,r,"error")),
+		Username: getUsername(r),
+	}
+	err := tmpl.Execute(w, data)
 	if err != nil {
 			log.Fatalf("template execution: %s", err)
 	}
@@ -247,18 +355,18 @@ func _login(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 	username := r.FormValue("Username")
 	pass := r.FormValue("Password")
-	redirectTarget := "/"
+	redirectTarget := "/login"
 	user := User{}
 	if username != "" && pass != "" {
-		f := bson.M{"username":username}
-		err := DB.C("users").Find(f).One(&user)
+		err := users.Find(bson.M{"username":username}).One(&user)
 		if err != nil {
-			log.Print(err)
+			SetFlash(w, "error", "User does not exist")
+		} else if CheckPasswordHash(pass,user.Password) {
+			setSession(username, w)
+			redirectTarget = "/"
+		} else {
+			SetFlash(w, "error", "Incorrect password")
 		}
-		log.Println(user)
-		log.Println(HashPassword(pass))
-		setSession(username, w)
-		redirectTarget = "/"
 	}
 	http.Redirect(w, r, redirectTarget, 302)
 	log.Printf(r.Method+" - "+r.URL.Path+" - %v\n",time.Now().Sub(start))
@@ -269,24 +377,21 @@ func _register(w http.ResponseWriter, r *http.Request) {
 	username := r.FormValue("Username")
 	pass := r.FormValue("Password")
 	confirmpass := r.FormValue("ConfirmPassword")
-	log.Println(username + " - " + strconv.FormatBool(confirmpass == pass))
+
 	if pass != confirmpass {
-		http.Redirect(w, r, "register", 302)
-	} else {
-	hash, err := HashPassword(pass)
-	if err != nil {
-		log.Println("Hash Failed")
+		
+	} else if username != "" && pass != "" && confirmpass != ""  {
+		hash, _ := HashPassword(pass)
+		users.Insert(bson.M{"username":username,"password":hash})
+		SetFlash(w, "success","Your account was created please log in")
 	}
-	log.Println(hash)
 	http.Redirect(w, r, "register", 302)
-	//DB.C("users").Insert(bson.M{"username":username,"password":hash})
-	}
 	log.Printf(r.Method+" - "+r.URL.Path+" - %v\n",time.Now().Sub(start))
 }
 
 func logout(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
-	clearSession(w)
+	clearSession(getID(r),w)
 	http.Redirect(w, r, "/", 302)
 	log.Printf(r.Method+" - "+r.URL.Path+" - %v\n",time.Now().Sub(start))
 }

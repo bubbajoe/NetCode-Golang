@@ -10,6 +10,11 @@ jQuery(function($){
     const doc = $editor.doc
     var lastChange = ""
 
+    function getCookieValue(a) {
+		var b = document.cookie.match('(^|;)\\s*' + a + '\\s*=\\s*([^;]+)');
+		return b ? b.pop() : '';
+	}
+
     // Send and append message
     $submit.click(function() {
         var msg = $message.val().trim(); // removes excess white space from string
@@ -45,7 +50,7 @@ jQuery(function($){
                 //$(this).css("width",$(this).val().length*2);
                 if(e.which == 13) { // 13 = enter key
                     $changeLang.html($(this).val());
-                    socket.emit('langChange',$(this).val());
+                    socket.emit('langChange',JSON.stringify({sessionID:getCookieValue('session'),data:$(this).val()}));
                 }
             });
         }
@@ -63,7 +68,7 @@ jQuery(function($){
                 //$(this).css("width",$(this).val().length*2);
                 if(e.which == 13) { // 13 = enter key
                     $changeName.html($(this).val());
-                    socket.emit('nameChange',$(this).val());
+                    socket.emit('nameChange',JSON.stringify({sessionID:getCookieValue('session'),data:$(this).val()}));
                 }
             });
         }
@@ -71,7 +76,7 @@ jQuery(function($){
     
     editor.on("changes", function(cm,arr){
         if(arr[0].origin != undefined) {
-            socket.emit("code:update", JSON.stringify(arr[0]))
+            socket.emit("code:update", JSON.stringify({data:arr[0],sessionID:getCookieValue('session')}))
         }
     });
 

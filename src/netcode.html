@@ -6,7 +6,6 @@
 	<title>NetCode</title>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 	<link rel="shortcut icon" href="assets/images/gt_favicon.png">
@@ -21,12 +20,11 @@
 	<script src="codemirror/mode/css/css.js"></script>
 	<script src="codemirror/mode/htmlmixed/htmlmixed.js"></script>
 	<script src="codemirror/addon/edit/matchbrackets.js"></script>
-	<!-- Custom styles for our template -->
 	<link rel="stylesheet" href="assets/css/bootstrap-theme.css" media="screen" >
 	<link rel="stylesheet" href="assets/css/main.css">
-	<!-- Added by me-->
+	<script src="js/bootstrap-treeview.min.js"></script>
+	<link rel="stylesheet" href="js/bootstrap-treeview.min.css">
 	<link rel="stylesheet" href="css/style.css">
-	<!-- Font Awesome-->
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
 	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular.min.js"></script>
 
@@ -52,25 +50,42 @@
 		#code{
 			z-index: 0;
 			position: relative;
+			float: left;
 		}
+		#tree {
+			margin-right: 10px;
+			max-width: 250px;
+		}
+		.treeview .list-group-item{cursor:pointer}
+		.treeview span.indent{margin-left:10px;margin-right:10px}
+		.treeview span.icon{width:12px;margin-right:5px}
+		.treeview .node-disabled{color:silver;cursor:not-allowed}
 	</style>
 </head>
 
 <body class="home">
+
 {{ template "navbar.html" .}}
 
 <div class="container" style="min-height:500px;">
 <h1 style="text-align:center;color:#999999;margin:0 0 20px 0">
-	<span id='filelang'>{{ .lang }}</span> : <span id='filename'>{{ .file }}</span>
+	<span id='filelang'>{{ .Lang }}</span> : <span id='filename'>{{ .File }}</span>
 </h1>
-<form style="position: relative; margin-top: .5em;">
-
+<div id="tree" class="treeview"></div>
+<form id="codebox" style="position: relative; margin-top: .5em;">
 <textarea id='code' name='code'>
-{{.text}}
+{{ .Code }}
 </textarea>
-
 </form>
 <script>
+	var data = {{ .Tree }}
+	$('#tree').treeview({
+		data: data,         // data is not optional
+		levels: 5,
+		color: "#555",
+		backColor: "#222",
+		onhoverColor: "#000"
+	});
 	var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
 		lineNumbers: true,
 		smartIndent: false,

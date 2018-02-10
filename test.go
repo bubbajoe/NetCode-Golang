@@ -7,11 +7,11 @@ import (
 )
 
 type User struct {
-	ID bson.ObjectId
-	username string	
-	firstname string
-	lastname string	
-	password string
+	ID bson.ObjectId 	`bson:"_id,omitempty"`
+	Username string		`bson:"username,omitempty"`
+	Firstname string	`bson:"firstname,omitempty"`
+	Lastname string		`bson:"lastname,omitempty"`
+	Password string		`bson:"password,omitempty"`
 }
 
 func main() {
@@ -21,49 +21,46 @@ func main() {
 		
 	}
 	userCollection := session.DB("Netcode").C("users")
-	user := &User{
-
-	}
+	user := &User{}
 	users := []User{
 	User{
-		username: "skb",
-		password: "$2a$04$17haVb1oGv0E4bQjZd5cvuRTWYiZFnVFpeNCNhttJ659rl/xDlrfq",
+		Username: "skb",
+		Password: "$2a$04$17haVb1oGv0E4bQjZd5cvuRTWYiZFnVFpeNCNhttJ659rl/xDlrfq",
 	},User{
-		username: "bubba",
-		password: "$2a$04$17haVb1oGv0E4bQjZd5cvuRTWYiZFnVFpeNCNhttJ659rl/xDlrfq",
+		Username: "bubba",
+		Password: "$2a$04$17haVb1oGv0E4bQjZd5cvuRTWYiZFnVFpeNCNhttJ659rl/xDlrfq",
 	},User{
-		username: "joe",
-		password: "$2a$04$17haVb1oGv0E4bQjZd5cvuRTWYiZFnVFpeNCNhttJ659rl/xDlrfq",
+		Username: "joe",
+		Password: "$2a$04$17haVb1oGv0E4bQjZd5cvuRTWYiZFnVFpeNCNhttJ659rl/xDlrfq",
 	},User{
-		username: "admin",
-		password: "$2a$04$17haVb1oGv0E4bQjZd5cvuRTWYiZFnVFpeNCNhttJ659rl/xDlrfq",
+		Username: "admin",
+		Password: "$2a$04$17haVb1oGv0E4bQjZd5cvuRTWYiZFnVFpeNCNhttJ659rl/xDlrfq",
 	},User{
-		username: "mod",
-		password: "$2a$04$17haVb1oGv0E4bQjZd5cvuRTWYiZFnVFpeNCNhttJ659rl/xDlrfq",
+		Username: "mod",
+		Password: "$2a$04$17haVb1oGv0E4bQjZd5cvuRTWYiZFnVFpeNCNhttJ659rl/xDlrfq",
 	},User{
-		username: "root",
-		password: "$2a$04$17haVb1oGv0E4bQjZd5cvuRTWYiZFnVFpeNCNhttJ659rl/xDlrfq",
+		Username: "root",
+		Password: "$2a$04$17haVb1oGv0E4bQjZd5cvuRTWYiZFnVFpeNCNhttJ659rl/xDlrfq",
 	},User{
-		username: "me",
-		password: "$2a$04$17haVb1oGv0E4bQjZd5cvuRTWYiZFnVFpeNCNhttJ659rl/xDlrfq",
+		Username: "me",
+		Password: "$2a$04$17haVb1oGv0E4bQjZd5cvuRTWYiZFnVFpeNCNhttJ659rl/xDlrfq",
 	},User{
-		username: "username",
-		password: "$2a$04$17haVb1oGv0E4bQjZd5cvuRTWYiZFnVFpeNCNhttJ659rl/xDlrfq",
+		Username: "username",
+		Password: "$2a$04$17haVb1oGv0E4bQjZd5cvuRTWYiZFnVFpeNCNhttJ659rl/xDlrfq",
 	},User{
-		username: "user",
-		password: "$2a$04$17haVb1oGv0E4bQjZd5cvuRTWYiZFnVFpeNCNhttJ659rl/xDlrfq",
+		Username: "user",
+		Password: "$2a$04$17haVb1oGv0E4bQjZd5cvuRTWYiZFnVFpeNCNhttJ659rl/xDlrfq",
 	}}
 	errr := userCollection.Insert(users)
 	if errr != nil {
 		fmt.Println("Insert Error: ", err)
-		
 	}
 	q := userCollection.Find(bson.M{"username":"bubbajoe"})
-	
+	q.One(&user)
+
 	if user != nil {
 		fmt.Println(user.ID.String())
 		fmt.Println(user)
-		fmt.Println(user.password)
 	} else {
 		fmt.Println("None")
 	}

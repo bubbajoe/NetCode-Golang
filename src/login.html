@@ -97,7 +97,7 @@
 				oninvalid='setCustomValidity(`3-16 username with only letters, numbers, and underscores "_"`)'
 				onchange="try{setCustomValidity('')}catch(e){}" required autofocus/><input type="password" class="form-control" name="Password" placeholder="Password" required=""/>
 				<button class="btn btn-lg btn-primary btn-block"  name="Submit" value="Login" type="Submit">Login</button>  			
-				{{ .messages }}
+				<p align="center" id="error" style="color:red;margin-top:30px">{{ .Error }}</p>
 			</form>
 		</div>
 	</div>

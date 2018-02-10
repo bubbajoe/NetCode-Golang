@@ -1,25 +1,24 @@
+<footer id="footer" class="top-space">
+	<div class="footer1">
+		<div class="container">
+			<div class="row">
+				
+				<h5><p class="text-center" style="float:center;padding-bottom:20px;">NetCode Copyright &copy; 2017.</p></h5>
 
-
-	<footer id="footer" class="top-space">
-
-		<div class="footer1">
-			<div class="container">
-				<div class="row">
-					
-					<h5><p class="text-center" style="float:center;padding-bottom:20px;">NetCode Copyright &copy; 2017.</p></h5>
-
-					<div class="col-md-1 pull-left">
-						<div style="width:140px;">
-							<a href="home"><img src="assets/images/NetCode.gif" style="padding-bottom:30px" /></a>
-						</div>
-					</div>
-					<div class="col-md-6 pull-right">
-						<div style="float:right; padding-top:20px;">
-								<h5 style="display:inline"><a href="home">Home</a>&nbsp;</h5>
-								<h5 style="display:inline"><a href="about">About</a>&nbsp;</h5>
-								<h5 style="display:inline"><a href="about">Contact</a>&nbsp;</h5>
-						</div>		
+				<div class="col-md-1 pull-left">
+					<div style="width:140px;">
+						<a href="/"><img src="assets/images/NetCode.gif" style="padding-bottom:30px" /></a>
 					</div>
 				</div>
+				<div class="col-md-6 pull-right">
+					<div style="float:right; padding-top:20px;">
+							{{ if .Username}}
+								<a href="logout">Logout</a> of {{.Username}}
+							{{ else }}
+								<a href="login">Login</a> or <a href="register">Register</a>  now!
+							{{ end }}
+					</div>		
+				</div>
 			</div>
-	</footer>	
+		</div>
+</footer>	

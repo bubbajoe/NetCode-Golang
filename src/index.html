@@ -240,6 +240,7 @@
 			</div>
 		</div>
 	</div>
+	{{ range .Projects }}
 	<div class="container">
 		<h2 style="text-align:center;color:#999999;margin-top:20px;"> Live Sessions </h2>
 		<div class="jumbotron top-space" style="background-color:#999999;">
@@ -249,20 +250,20 @@
 					<!--Body content-->
 					<h2>
 						<a style="color:red" href="#">
-							{title}
+							{{.Title}}
 						</a>
 					</h3>
-					<p><b>Language :  </b> {language} </p>
-					<h4>{description}</h4>
+					<p><b>Language :  </b> {{.Lang}} </p>
+					<h4>{{.Desc}}</h4>
 					</div>
 				</div>
 			</div>
      		<p style="margin-bottom:0px" class="text-right">
-				 <a class="btn btn-danger" href="project?id=" target="_blank">View Project »</a>
+				 <a class="btn btn-danger" href="project?id={{ .ID }}" target="_blank">View Project »</a>
 			</p>
   		</div>
 	</div>
-
+	{{ end }}
 </div>	<!-- /container -->
 
 	{{ template "footer.html" . }}
