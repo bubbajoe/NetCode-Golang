@@ -80,8 +80,9 @@ jQuery(function($){
         }
     });
 
-    socket.on('code:update',function(data) {
-        data = JSON.parse(data)
+    socket.on('code:update',function(pkt) {
+        pkt = JSON.parse(pkt)
+        let data = pkt.data
         let i = 0;
         if(data.text.length > 0 || data.text[0] != '')
             data.text.forEach(function(item,index) {

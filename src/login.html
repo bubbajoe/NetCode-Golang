@@ -25,7 +25,7 @@
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
 	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular.min.js"></script>
 
-		<title>NetCode</title>
+	<title>NetCode</title>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
@@ -52,8 +52,8 @@
 		}
 		.form-signin {
 		max-width: 420px;
-		padding: 30px 38px 66px;
-		margin: 200px auto 50px auto;
+		padding: 30px 30px 30px;
+		margin: 200px auto 40px auto;
 		background-color: rgb(32, 32, 32);
 		color:darkgray;
 		border: 3px dotted rgba(0,0,0,0.1);  
@@ -96,8 +96,9 @@
 				<input type="text" class="form-control" name="Username" placeholder="Username" pattern="^[A-Za-z0-9_]{3,16}$" 
 				oninvalid='setCustomValidity(`3-16 username with only letters, numbers, and underscores "_"`)'
 				onchange="try{setCustomValidity('')}catch(e){}" required autofocus/><input type="password" class="form-control" name="Password" placeholder="Password" required=""/>
-				<button class="btn btn-lg btn-primary btn-block"  name="Submit" value="Login" type="Submit">Login</button>  			
-				<p align="center" id="error" style="color:red;margin-top:30px">{{ .Error }}</p>
+				<button class="btn btn-lg btn-primary btn-block"  name="Submit" value="Login" type="Submit">Login</button>
+				<a class="btn btn-lg btn-primary btn-block" style="margin-bottom:10px;margin-top:10px;"><img height="16" src="/assets/images/github-mark.png">&nbsp;Login with Github</a>  
+				<p align="center" id="error" style="color:red">{{ .Error }}</p>
 			</form>
 		</div>
 	</div>
