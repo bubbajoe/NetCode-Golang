@@ -91,27 +91,69 @@ func main() {
 
 	defer session.Close()
 
+	// Possible change: create a shared data system
+	// to conserve server ram for scaling purposes
+	// using pointers in the variables below
+
+	// All users
 	activeUsers := make(map[string]socketio.Socket)
+	// Users per room
+	rooms := make(map[string][]string)
+
 	server.On("connection", func(so socketio.Socket) {
 		activeUsers[so.Id()] = so
-		// so.Join("netcode")
-		so.On("code:update", func(s socketio.Socket, data string) {
-			// Send to all active users
+
+		// Binds the socket id to the users account temporary
+		so.On("user:bind", func(data string) {
+			// checks to see if the current users
+		})
+
+		// Joins a specific room
+		so.On("room:join", func(data string) {
+			// Check to see if this user is able to join the room
+			//roomName := json.Unmarshal(data)...?
+			rooms[data] = append(rooms[data], so.Id())
+			so.Join(data)
+		})
+
+		// Joins a specific room
+		so.On("room:leave", func(data string) {
+			//delete(rooms[data], so.Id())
+			so.Leave(data)
+		})
+
+		// Updates letter by letter
+		so.On("code:update", func(data string) {
+			// Not optimal for scaling
 			for id, socket := range activeUsers {
-				if id != s.Id() {
+				if id != so.Id() {
 					socket.Emit("code:update", data)
 				}
 			}
 		})
 
-		so.On("pong", func(ms int) {
-			log.Printf("ms: %d", ms)
+		// Updates new users that join session
+		so.On("code:sync", func(data string) {
+
 		})
 
-		so.On("users", func() {
+		// Saves data to database
+		so.On("code:save", func(data string) {
+
+		})
+
+		// Checks if all users in the room are in sync
+		so.On("code:check", func(data string) {
+
+		})
+
+		so.On("get:users", func() {
 			log.Printf("active users: %d", activeUsers)
 		})
 
+		// When the user disconnects
+		// (in case of a temporary disconnection,
+		// saving the session would be a good idea)
 		so.On("disconnection", func() {
 			delete(activeUsers, so.Id())
 		})
@@ -143,6 +185,13 @@ func main() {
 
 	// log.Println("Serving at https://localhost" )
 	// log.Fatal(http.ListenAndServeTLS(":443", "server.crt", "server.key", nil))
+}
+
+func tercon(z bool, a interface{}, b interface{}) interface{} {
+	if z {
+		return a
+	}
+	return b
 }
 
 func SetFlash(w http.ResponseWriter, name string, value string) {
