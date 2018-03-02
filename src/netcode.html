@@ -3,16 +3,41 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<link rel="icon" href="favicon.ico" type="image/x-icon" />
+	<link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+	
 	<title>NetCode</title>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="css/bootstrap.min.css">
+	<script src="https://npmcdn.com/tether@1.2.4/dist/js/tether.min.js"></script>
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-	<link rel="shortcut icon" href="assets/images/gt_favicon.png">
-	<link rel="stylesheet" media="screen" href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,700">
+	<script src="js/bootstrap.min.js"></script>
+	<link rel="stylesheet" media="screen" href="http://fonts.googleapis.com/css?family=Open+Sans:300,400,700">
+	<!-- Custom styles for our template -->
+	<script src="assets/js/headroom.min.js"></script>
+	<script src="assets/js/jQuery.headroom.min.js"></script>
+	<script src="assets/js/template.js"></script>
+	<script src="js/bootstrap.min.js"></script>
+	<link rel="stylesheet" href="assets/css/bootstrap-theme.css" media="screen" >
+	<link rel="stylesheet" href="assets/css/main.css">
+	<!-- Added by me-->
+	<link rel="stylesheet" href="css/style.css">
+	<!-- Font Awesome-->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
 	<link rel=stylesheet href="codemirror/lib/codemirror.css">
 	<link rel=stylesheet href="codemirror/doc/docs.css">
 	<link rel="stylesheet" href="codemirror/addon/display/fullscreen.css">
+	<link rel="stylesheet" href="assets/css/bootstrap-theme.css" media="screen" >
+	<link rel="stylesheet" href="assets/css/main.css">
+	<link rel="stylesheet" href="js/bootstrap-treeview.min.css">
+	<link rel="stylesheet" href="css/style.css">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+    <link href="https://fonts.googleapis.com/css?family=Inconsolata" rel="stylesheet" type="text/css" />
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+	<link rel="stylesheet" href="assets/css/main.css">
 	<script src="codemirror/lib/codemirror.js"></script>
 	<script src="codemirror/mode/xml/xml.js"></script>
 	<script src="codemirror/mode/javascript/javascript.js"></script>
@@ -20,46 +45,10 @@
 	<script src="codemirror/mode/css/css.js"></script>
 	<script src="codemirror/mode/htmlmixed/htmlmixed.js"></script>
 	<script src="codemirror/addon/edit/matchbrackets.js"></script>
-	<link rel="stylesheet" href="assets/css/bootstrap-theme.css" media="screen" >
-	<link rel="stylesheet" href="assets/css/main.css">
-	<script src="js/bootstrap-treeview.min.js"></script>
-	<link rel="stylesheet" href="js/bootstrap-treeview.min.css">
-	<link rel="stylesheet" href="css/style.css">
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
-	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular.min.js"></script>
 
-	<title>NetCode</title>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-	<link rel="stylesheet" href="assets/css/bootstrap-theme.css" media="screen" >
-	<link rel="stylesheet" href="assets/css/main.css">
 
 	<style>
-		.home {
-			margin-top: 100px;
-		}
-		#bottom-editor {
-			background-color: red;
-			border-top: 2px solid white;
-			border-bottom: 2px solid white;
-		}
-		div#navbar {
-			z-index: 10;
-		}
-		#code{
-			z-index: 0;
-			position: relative;
-			float: left;
-		}
-		#tree {
-			margin-right: 10px;
-			max-width: 250px;
-		}
-		.treeview .list-group-item{cursor:pointer}
-		.treeview span.indent{margin-left:10px;margin-right:10px}
-		.treeview span.icon{width:12px;margin-right:5px}
-		.treeview .node-disabled{color:silver;cursor:not-allowed}
+
 	</style>
 </head>
 
@@ -77,42 +66,28 @@
 {{ .Code }}
 </textarea>
 </form>
-<script>
-	var data = {{ .Tree }}
-	$('#tree').treeview({
-		data: data,         // data is not optional
-		levels: 5,
-		color: "#555",
-		backColor: "#222",
-		onhoverColor: "#000"
-	});
-	var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
-		lineNumbers: true,
-		smartIndent: false,
-		extraKeys: {
-			"F10": function(cm) {
-				cm.setOption("fullScreen", !cm.getOption("fullScreen"));
-				document.getElementById("code").style.zIndex = 
-					cs.getOption("fullScreen") ? 20 : 0;
-			},
-			"Esc": function(cm) {
-				if (cm.getOption("fullScreen")) cm.setOption("fullScreen", false);
-				document.getElementById("code").style.zIndex = 0;
-			}
-		}
-	});
-</script>
-</div>	
+<br><br>
+<div id="outer">
+<div id="inner">
+  <output></output>
+  <div id="input-line" class="input-line">
+    <div class="prompt"></div><div><input class="cmdline" autofocus /></div>
+  </div>
+</div>
+</div>
+</div>
+
 {{template "footer.html" .}}
+<script src="js/script.js"></script>
+<script src="js/bootstrap-treeview.min.js"></script>
+<script src="js/live-editor.js"></script>
 <!-- JavaScript libs are placed at the end of the document so the pages load faster -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 <script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
-<script src="https://code.jquery.com/jquery-latest.min.js"></script>
 <script src="assets/js/headroom.min.js"></script>
+
 <script src="assets/js/jQuery.headroom.min.js"></script>
 <script src="assets/js/template.js"></script>
-<script src="js/script.js"></script>
-<script src="js/live-editor.js"></script>
 <script src="/js/socket.io.slim.js"></script>
 </body>
 </html>

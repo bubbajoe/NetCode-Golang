@@ -38,10 +38,12 @@ type Session struct {
 }
 
 type Project struct {
-	ID    string
+	ID    string `bson:"_id,omitempty"`
 	Title string
 	Lang  string
 	Desc  string
+	Room  string `bson:"project_room,omitempty"`
+	Text  string `bson:"text,omitempty"`
 }
 
 type TemplateData struct {
@@ -60,7 +62,7 @@ var cookieHandler = securecookie.New(
 var users *mgo.Collection
 
 //var files *mgo.Collection
-//var projects *mgo.Collection
+var projects *mgo.Collection
 var sessions *mgo.Collection
 
 func main() {
@@ -85,8 +87,8 @@ func main() {
 	}
 
 	users = session.DB(os.Getenv("MONGODB")).C("users")
-	//files = session.DB("Netcode").C("files")
-	//projects = session.DB("Netcode").C("projects")
+	//files = session.DB(os.Getenv("MONGODB")).C("files")
+	projects = session.DB(os.Getenv("MONGODB")).C("projects")
 	sessions = session.DB(os.Getenv("MONGODB")).C("sessions")
 
 	defer session.Close()
@@ -99,27 +101,41 @@ func main() {
 	activeUsers := make(map[string]socketio.Socket)
 	// Users per room
 	rooms := make(map[string][]string)
+	// updates before the last save
+	recentUpdates := make(map[string][]string)
 
 	server.On("connection", func(so socketio.Socket) {
 		activeUsers[so.Id()] = so
-
+		//so.Join("default")
 		// Binds the socket id to the users account temporary
 		so.On("user:bind", func(data string) {
 			// checks to see if the current users
+			log.Println("Socket.IO - room:bind " + data)
 		})
 
 		// Joins a specific room
 		so.On("room:join", func(data string) {
+			log.Println("Socket.IO - room:join " + data)
 			// Check to see if this user is able to join the room
 			//roomName := json.Unmarshal(data)...?
-			rooms[data] = append(rooms[data], so.Id())
-			so.Join(data)
+			var result Project
+			projects.Find(bson.M{"project_name": data}).One(&result)
+			room := result.Room
+			rooms[room] = append(rooms[room], so.Id())
+			so.Join(room)
+			// Not optimal for scaling
+
+			so.Emit("code:change", result.Text)
+			for _, value := range recentUpdates[room] {
+				so.Emit("code:update", value)
+			}
 		})
 
 		// Joins a specific room
 		so.On("room:leave", func(data string) {
 			//delete(rooms[data], so.Id())
 			so.Leave(data)
+			log.Println("Socket.IO - room:leave " + data)
 		})
 
 		// Updates letter by letter
@@ -128,6 +144,7 @@ func main() {
 			for id, socket := range activeUsers {
 				if id != so.Id() {
 					socket.Emit("code:update", data)
+					recentUpdates["default"] = append(recentUpdates["default"], data)
 				}
 			}
 		})
@@ -168,7 +185,7 @@ func main() {
 
 	r.HandleFunc("/netcode", netcode).Methods("GET")
 	r.HandleFunc("/code", code).Methods("GET")
-	r.HandleFunc("/projects", projects).Methods("GET")
+	r.HandleFunc("/projects", _projects).Methods("GET")
 
 	// Authentication
 	r.HandleFunc("/login", login).Methods("GET")
@@ -360,7 +377,7 @@ func code(w http.ResponseWriter, r *http.Request) {
 	log.Printf(r.Method+" - "+r.URL.Path+" - %v\n", time.Now().Sub(start))
 }
 
-func projects(w http.ResponseWriter, r *http.Request) {
+func _projects(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 	paths := []string{
 		"src/projects.html",
