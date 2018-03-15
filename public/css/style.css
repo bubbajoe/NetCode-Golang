@@ -1,46 +1,42 @@
 body{
    margin-top: 100px;
 }
-
 .home{
 	margin-top: 100px;
 }
-
 #bottom-editor {
 	background-color: red;
 	border-top: 2px solid white;
 	border-bottom: 2px solid white;
 }
-
 div#navbar {
 	z-index: 10;
 }
-
 #code{
 	z-index: 0;
 	position: relative;
 	float: left;
 }
-
 #tree {
 	margin-right: 10px;
 	max-width: 250px;
 }
-
 .treeview .list-group-item{cursor:pointer}
 .treeview span.indent{margin-left:10px;margin-right:10px}
 .treeview span.icon{width:12px;margin-right:5px}
 .treeview .node-disabled{color:silver;cursor:not-allowed}
-
 #outer::selection {
   background: #FF5E99;
 }
-
 #outer {
+  bottom:0;
+  position: fixed;
   width: 100%;
-  height: 500px;
+  height: 400px;
   overflow-y: auto;
   margin: 0;
+  z-index: -1;
+  
 }
 #outer {
   font-size: 11pt;

@@ -2,23 +2,8 @@ var util = util || {};
 util.toArray = function(list) {
   return Array.prototype.slice.call(list || [], 0);
 };
-var htmlToText = (str) => {
+htmlToText = function(str) {
   return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-var getCookie = (cname) => {
-    var name = cname + "=";
-    var decodedCookie = decodeURIComponent(document.cookie);
-    var ca = decodedCookie.split(';');
-    for(var i = 0; i <ca.length; i++) {
-        var c = ca[i];
-        while (c.charAt(0) == ' ') {
-            c = c.substring(1);
-        }
-        if (c.indexOf(name) == 0) {
-            return c.substring(name.length, c.length);
-        }
-    }
-    return "";
 }
 
 var Terminal = Terminal || function(cmdLineContainer, outputContainer) {
@@ -35,7 +20,6 @@ var Terminal = Terminal || function(cmdLineContainer, outputContainer) {
   
   var fs_ = null;
   var cwd_ = null;
-  var line = ""
   var terminal = $(outputContainer.split(" ")[0])
   var history_ = [];
   var histpos_ = 0;
@@ -72,11 +56,7 @@ var Terminal = Terminal || function(cmdLineContainer, outputContainer) {
             c = c.substring(1);
         }
         if (c.indexOf(name) == 0) {
-	        try {
-            	history_ = JSON.parse(c.substring(name.length, c.length))
-        	} catch(e) {
-        		history_ = {}
-        	}
+            history_ = JSON.parse(c.substring(name.length, c.length))
             histpos_ = history_.length
         }
     }
@@ -115,48 +95,82 @@ var Terminal = Terminal || function(cmdLineContainer, outputContainer) {
   //
   function processNewCommand_(e) {
 
-    if (e.keyCode == 9) {
+    if (e.keyCode == 9) { // tab
       e.preventDefault();
-    } else if (e.keyCode == 13) {
+      // Implement tab suggest.
+    } else if (e.keyCode == 13) { // enter
+      this.readOnly = true
+      // Save shell history.
       if (this.value) {
         history_[history_.length] = this.value;
         histpos_ = history_.length;
-        if(history_.length >= 20) {
-          history_.shift()
-          histpos_--
-        }
         saveHistory()
       }
-      
-      line = this.parentNode.parentNode.cloneNode(true)
+
+      // Duplicate current input and append to output section.
+      var line = this.parentNode.parentNode.cloneNode(true);
       line.removeAttribute('id')
       line.classList.add('line');
       var input = line.querySelector('input.cmdline');
       input.autofocus = false;
       input.readOnly = true;
       output_.appendChild(line);
-      
+
       if (this.value && this.value.trim()) {
         var args = this.value.split(' ').filter(function(val, i) {
           return val;
         });
         var cmd = args[0].toLowerCase();
         args = args.splice(1); // Remove cmd from arg list.
-        this.value = ""
-      } else return
-      
-      $.ajax({
-          url: '/command',
-          type: 'POST',
-          data: cmd,
-          success: function(msg) {
-            output(JSON.parse(msg).response)
-            //output('<pre style="height:150px;overflow:scroll;">' + htmlToText(data) + '</pre>');
-          },
-          error: function() {
-            output('Could not reach server, please try again later')
+      }
+
+      switch (cmd) {
+        case 'cat':
+          var url = args.join(' ');
+          if (!url) {
+            output('Usage: ' + cmd + ' https://s.codepen.io/...');
+            output('Example: ' + cmd + ' https://s.codepen.io/AndrewBarfield/pen/LEbPJx.js');
+            break;
           }
-      })
+          $.ajax({
+              url: url,
+              type: 'GET',
+              crossDomain: true,
+              headers:{"Access-Control-Allow-Credentials":"true","Access-Control-Allow-Origin":"true"},
+              success: function(data) {
+                output('<pre style="height:150px;overflow:scroll;">' + htmlToText(data) + '</pre>');
+              },
+              error: function() {
+                output('<p>Could retrieve data at '+url+'</p>')
+              }
+          })         
+          break;
+        case 'clear':
+          output_.innerHTML = '';
+          this.value = '';
+          return;
+        case 'date':
+          output( new Date() );
+          break;
+        case 'echo':
+          output( args.join(' ') );
+          break;
+        case 'help':
+          output('<div class="ls-files">' + CMDS_.join('<br>') + '</div>');
+          break;
+        case 'uname':
+          output(navigator.appVersion);
+          break;
+        case 'whoami':
+          output("you")
+          break;
+        default:
+          if (cmd) {
+            output(cmd + ': command not found');
+          }
+      };
+
+      terminal.animate({ scrollTop: terminal[0].scrollHeight }, "slow");
     }
   }
 
@@ -182,8 +196,7 @@ var Terminal = Terminal || function(cmdLineContainer, outputContainer) {
   //
   function output(html) {
     output_.insertAdjacentHTML('beforeend', '<p>' + html + '</p>');
-    terminal.animate({ scrollTop: terminal[0].scrollHeight }, 800);
-    this.value = ""; // Clear/setup line for next input.
+    this.value = ''; // Clear/setup line for next input.
   }
 
   // Cross-browser impl to get document's height.

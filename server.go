@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/base64"
-	_ "encoding/json"
+	"encoding/json"
 	"github.com/google/uuid"
 	"github.com/googollee/go-socket.io"
 	"github.com/gorilla/mux"
@@ -13,7 +13,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 	"html/template"
 	_ "io"
-	_ "io/ioutil"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -47,12 +47,20 @@ type Project struct {
 }
 
 type TemplateData struct {
-	Lang     string
-	File     string
-	Code     string
-	Tree     template.JS
-	Error    string
-	Username string
+	Response string      `json:"response,omitempty"`
+	Data     string      `json:"data,omitempty"`
+	Lang     string      `json:"lang,omitempty"`
+	File     string      `json:"file,omitempty"`
+	Code     string      `json:"code,omitempty"`
+	Tree     template.JS `json:"tree,omitempty"`
+	Error    string      `json:"error,omitempty"`
+	Username string      `json:"username,omitempty"`
+}
+
+type FSNode struct {
+	Name     string   `bson:"name"`
+	Data     []byte   `bson:"data,omitempty"`
+	Children []FSNode `bson:"children,omitempty"`
 }
 
 var cookieHandler = securecookie.New(
@@ -85,11 +93,12 @@ func main() {
 	if err != nil {
 		log.Fatal("MongoDB Error: ", err)
 	}
-
-	users = session.DB(os.Getenv("MONGODB")).C("users")
-	//files = session.DB(os.Getenv("MONGODB")).C("files")
-	projects = session.DB(os.Getenv("MONGODB")).C("projects")
-	sessions = session.DB(os.Getenv("MONGODB")).C("sessions")
+	dbName := os.Getenv("MONGODB")
+	//log.Println(dbName)
+	users = session.DB(dbName).C("users")
+	//files = session.DB(dbName).C("files")
+	projects = session.DB(dbName).C("projects")
+	sessions = session.DB(dbName).C("sessions")
 
 	defer session.Close()
 
@@ -164,7 +173,19 @@ func main() {
 
 		})
 
-		so.On("get:users", func() {
+		so.On("terminal:command", func(data string) {
+
+		})
+
+		so.On("terminal:join", func(data string) {
+
+		})
+
+		so.On("terminal:leave", func(data string) {
+
+		})
+
+		so.On("user:log", func() {
 			log.Printf("active users: %d", activeUsers)
 		})
 
@@ -184,8 +205,12 @@ func main() {
 	r.HandleFunc("/", homepage)
 
 	r.HandleFunc("/netcode", netcode).Methods("GET")
+	r.HandleFunc("/command", command).Methods("POST")
+	r.HandleFunc("/code", code).Methods("GET")
+	r.HandleFunc("/users/{username}", nil).Methods("GET")
 	r.HandleFunc("/code", code).Methods("GET")
 	r.HandleFunc("/projects", _projects).Methods("GET")
+	r.HandleFunc("/projects/{p_name}", nil).Methods("GET")
 
 	// Authentication
 	r.HandleFunc("/login", login).Methods("GET")
@@ -358,6 +383,48 @@ func netcode(w http.ResponseWriter, r *http.Request) {
 	log.Printf(r.Method+" - "+r.URL.Path+" - %v\n", time.Now().Sub(start))
 }
 
+func calculator(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+
+	log.Printf(r.Method+" - "+r.URL.Path+" - %v\n", time.Now().Sub(start))
+}
+
+func command(w http.ResponseWriter, r *http.Request) {
+	// Optimize this by putting this code in the socket
+	start := time.Now()
+	response := ""
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		panic(err)
+	}
+	cmd := string(body)
+
+	if cmd == "" {
+		response = " "
+	} else {
+		id := getID(r)
+		if id != "" {
+			var sess Session
+			sessions.Find(bson.M{"sessionID": id}).One(&sess)
+			username := sess.Username
+			switch cmd {
+			case "whoami":
+				response = username
+				break
+			case "id":
+				response = id
+				break
+			default:
+				response = "netcode: " + cmd + ": command not recognized"
+			}
+		} else {
+			response = "You need to log in"
+		}
+	}
+	json.NewEncoder(w).Encode(TemplateData{Response: response})
+	log.Printf(r.Method+" - "+r.URL.Path+" - %v\n", time.Now().Sub(start))
+}
+
 func code(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 	paths := []string{
@@ -459,11 +526,13 @@ func _register(w http.ResponseWriter, r *http.Request) {
 	confirmpass := r.FormValue("ConfirmPassword")
 	redirectTarget := "/register"
 	if pass != confirmpass {
-		redirectTarget = "/register"
 		SetFlash(w, "error", "Your passwords are different")
 	} else if username != "" && pass != "" && confirmpass != "" {
 		hash, _ := HashPassword(pass)
-		users.Insert(bson.M{"username": username, "password": hash})
+		err := users.Insert(bson.M{"username": username, "password": hash})
+		if err != nil {
+			log.Fatal(err)
+		}
 		redirectTarget = "/login"
 		SetFlash(w, "success", "Your account was created please log in")
 	}

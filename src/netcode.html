@@ -14,8 +14,11 @@
 	<script src="https://npmcdn.com/tether@1.2.4/dist/js/tether.min.js"></script>
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+	<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 	<script src="js/bootstrap.min.js"></script>
-	<link rel="stylesheet" media="screen" href="http://fonts.googleapis.com/css?family=Open+Sans:300,400,700">
+	<link rel="stylesheet" media="screen" href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,700">
 	<!-- Custom styles for our template -->
 	<script src="assets/js/headroom.min.js"></script>
 	<script src="assets/js/jQuery.headroom.min.js"></script>
@@ -36,58 +39,75 @@
 	<link rel="stylesheet" href="css/style.css">
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
     <link href="https://fonts.googleapis.com/css?family=Inconsolata" rel="stylesheet" type="text/css" />
-    <script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 	<link rel="stylesheet" href="assets/css/main.css">
-	<script src="codemirror/lib/codemirror.js"></script>
-	<script src="codemirror/mode/xml/xml.js"></script>
-	<script src="codemirror/mode/javascript/javascript.js"></script>
-	<script src="codemirror/addon/display/fullscreen.js"></script>
-	<script src="codemirror/mode/css/css.js"></script>
-	<script src="codemirror/mode/htmlmixed/htmlmixed.js"></script>
-	<script src="codemirror/addon/edit/matchbrackets.js"></script>
 
-
-	<style>
-
-	</style>
 </head>
 
 <body class="home">
 
 {{ template "navbar.html" .}}
 
-<div class="container" style="min-height:500px;">
-<h1 style="text-align:center;color:#999999;margin:0 0 20px 0">
-	<span id='filelang'>{{ .Lang }}</span> : <span id='filename'>{{ .File }}</span>
-</h1>
-<div id="tree" class="treeview"></div>
-<form id="codebox" style="position: relative; margin-top: .5em;">
-<textarea id='code' name='code'>
-{{ .Code }}
-</textarea>
-</form>
-<br><br>
-<div id="outer">
-<div id="inner">
-  <output></output>
-  <div id="input-line" class="input-line">
-    <div class="prompt"></div><div><input class="cmdline" autofocus /></div>
-  </div>
-</div>
-</div>
-</div>
+<div class="container" style="min-height:100px;z-index:0">
 
-{{template "footer.html" .}}
+	<h1 style="text-align:center;color:#999999;margin:0 0 20px 0">
+		<span id='filelang'>{{ .Lang }}</span> : <span id='filename'>{{ .File }}</span>
+	</h1>
+	
+	<div id="tree" class="treeview"></div>
+	
+	<form id="codebox" style="position: relative; margin-top: .5em;">
+		<textarea id='code' name='code'>{{ .Code }}</textarea>
+	</form>
+</div>
+	
+	<div id="outer" style="z-index:11;">
+	<div id="inner">
+	  <output></output>
+	  <div id="input-line" class="input-line">
+	    <div class="prompt"></div><div><input class="cmdline" autofocus /></div>
+	  </div>
+	</div>
+	</div>
+
+
+
+<!-- {{template "footer.html" .}} -->
+
+<script src="codemirror/lib/codemirror.js"></script>
+<script src="codemirror/mode/xml/xml.js"></script>
+<script src="codemirror/mode/javascript/javascript.js"></script>
+<script src="codemirror/addon/display/fullscreen.js"></script>
+<script src="codemirror/mode/css/css.js"></script>
+<script src="codemirror/mode/htmlmixed/htmlmixed.js"></script>
+<script src="codemirror/addon/edit/matchbrackets.js"></script>
 <script src="js/script.js"></script>
 <script src="js/bootstrap-treeview.min.js"></script>
 <script src="js/live-editor.js"></script>
-<!-- JavaScript libs are placed at the end of the document so the pages load faster -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 <script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
 <script src="assets/js/headroom.min.js"></script>
-
 <script src="assets/js/jQuery.headroom.min.js"></script>
 <script src="assets/js/template.js"></script>
 <script src="/js/socket.io.slim.js"></script>
+<script>
+var data = {{.Tree}}
+
+var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+	lineNumbers: true,
+	smartIndent: false,
+	extraKeys: {
+		"F10": function(cm) {
+			cm.setOption("fullScreen", !cm.getOption("fullScreen"));
+			document.getElementById("code").style.zIndex = 
+				cs.getOption("fullScreen") ? 20 : 0
+		},
+		"Esc": function(cm) {
+			if (cm.getOption("fullScreen")) cm.setOption("fullScreen", false);
+			document.getElementById("code").style.zIndex = 0
+		}
+	}
+})
+</script>
 </body>
 </html>
