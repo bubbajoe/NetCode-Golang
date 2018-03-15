@@ -1,9 +1,108 @@
 {
-	"ImportPath": ".",
+	"ImportPath": "github.com/bubbajoe/netcode-golang",
 	"GoVersion": "go1.10",
 	"GodepVersion": "v80",
 	"Packages": [
 		"./..."
 	],
-	"Deps": []
+	"Deps": [
+		{
+			"ImportPath": "github.com/google/uuid",
+			"Comment": "0.2-21-gdec09d7",
+			"Rev": "dec09d789f3dba190787f8b4454c7d3c936fed9e"
+		},
+		{
+			"ImportPath": "github.com/googollee/go-engine.io",
+			"Rev": "80ae0e43aca17b4c5a6834999d0f2eaa16b9afda"
+		},
+		{
+			"ImportPath": "github.com/googollee/go-engine.io/message",
+			"Rev": "80ae0e43aca17b4c5a6834999d0f2eaa16b9afda"
+		},
+		{
+			"ImportPath": "github.com/googollee/go-engine.io/parser",
+			"Rev": "80ae0e43aca17b4c5a6834999d0f2eaa16b9afda"
+		},
+		{
+			"ImportPath": "github.com/googollee/go-engine.io/polling",
+			"Rev": "80ae0e43aca17b4c5a6834999d0f2eaa16b9afda"
+		},
+		{
+			"ImportPath": "github.com/googollee/go-engine.io/transport",
+			"Rev": "80ae0e43aca17b4c5a6834999d0f2eaa16b9afda"
+		},
+		{
+			"ImportPath": "github.com/googollee/go-engine.io/websocket",
+			"Rev": "80ae0e43aca17b4c5a6834999d0f2eaa16b9afda"
+		},
+		{
+			"ImportPath": "github.com/googollee/go-socket.io",
+			"Comment": "0.9.x-68-g5447e71",
+			"Rev": "5447e71f36d394766bf855d5714a487596809f0d"
+		},
+		{
+			"ImportPath": "github.com/gorilla/mux",
+			"Comment": "v1.6.1-10-gc0091a0",
+			"Rev": "c0091a029979286890368b4c7b301261e448e242"
+		},
+		{
+			"ImportPath": "github.com/gorilla/securecookie",
+			"Comment": "v1.1-6-ge59506c",
+			"Rev": "e59506cc896acb7f7bf732d4fdf5e25f7ccd8983"
+		},
+		{
+			"ImportPath": "github.com/gorilla/websocket",
+			"Comment": "v1.2.0-31-gf37d158",
+			"Rev": "f37d1588608ec036fa9b0b7b8afbde47dc06aea9"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/bcrypt",
+			"Rev": "432090b8f568c018896cd8a0fb0345872bbac6ce"
+		},
+		{
+			"ImportPath": "golang.org/x/crypto/blowfish",
+			"Rev": "432090b8f568c018896cd8a0fb0345872bbac6ce"
+		},
+		{
+			"ImportPath": "golang.org/x/net/context",
+			"Rev": "cbe0f9307d0156177f9dd5dc85da1a31abc5f2fb"
+		},
+		{
+			"ImportPath": "golang.org/x/net/context/ctxhttp",
+			"Rev": "cbe0f9307d0156177f9dd5dc85da1a31abc5f2fb"
+		},
+		{
+			"ImportPath": "golang.org/x/oauth2",
+			"Rev": "543e37812f10c46c622c9575afd7ad22f22a12ba"
+		},
+		{
+			"ImportPath": "golang.org/x/oauth2/internal",
+			"Rev": "543e37812f10c46c622c9575afd7ad22f22a12ba"
+		},
+		{
+			"ImportPath": "gopkg.in/mgo.v2",
+			"Comment": "r2016.08.01-5-g3f83fa5",
+			"Rev": "3f83fa5005286a7fe593b055f0d7771a7dce4655"
+		},
+		{
+			"ImportPath": "gopkg.in/mgo.v2/bson",
+			"Comment": "r2016.08.01-5-g3f83fa5",
+			"Rev": "3f83fa5005286a7fe593b055f0d7771a7dce4655"
+		},
+		{
+			"ImportPath": "gopkg.in/mgo.v2/internal/json",
+			"Comment": "r2016.08.01-5-g3f83fa5",
+			"Rev": "3f83fa5005286a7fe593b055f0d7771a7dce4655"
+		},
+		{
+			"ImportPath": "gopkg.in/mgo.v2/internal/sasl",
+			"Comment": "r2016.08.01-5-g3f83fa5",
+			"Rev": "3f83fa5005286a7fe593b055f0d7771a7dce4655"
+		},
+		{
+			"ImportPath": "gopkg.in/mgo.v2/internal/scram",
+			"Comment": "r2016.08.01-5-g3f83fa5",
+			"Rev": "3f83fa5005286a7fe593b055f0d7771a7dce4655"
+		}
+	]
 }

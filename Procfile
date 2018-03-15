@@ -1,1 +1,1 @@
-web: netcode
+web: go run server.go
