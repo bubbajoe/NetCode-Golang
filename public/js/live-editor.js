@@ -6,11 +6,10 @@ jQuery(function($) {
     const $editor = $('#code')
     const $changeLang = $('#filelang')
     const $changeName = $('#filename')
-    
     const doc = $editor.doc
     var lastChange = ""
 
-    function getCookieValue(a) {
+  function getCookieValue(a) {
 		var b = document.cookie.match('(^|;)\\s*' + a + '\\s*=\\s*([^;]+)');
 		return b ? b.pop() : '';
 	}
@@ -153,6 +152,7 @@ jQuery(function($) {
       var fs_ = null;
       var cwd_ = null;
       var line = ""
+      var waiter = null;
       var terminal = $(outputContainer.split(" ")[0])
       var history_ = [];
       var histpos_ = 0;
@@ -248,10 +248,11 @@ jQuery(function($) {
           line = this.parentNode.parentNode.cloneNode(true)
           line.removeAttribute('id')
           line.classList.add('line');
+          output_.appendChild(line);
+          
           var input = line.querySelector('input.cmdline');
           input.autofocus = false;
           input.readOnly = true;
-          output_.appendChild(line);
           
           if (this.value && this.value.trim()) {
             var args = this.value.split(' ').filter(function(val, i) {
@@ -265,12 +266,11 @@ jQuery(function($) {
           socket.emit("terminal:command",cmd);
         }
       }
-      
-    socket.on('terminal:responce',function(res) {
-        output(res)
+    
+    socket.on('terminal:response',function(cmd) {
+        output(cmd)
     });
     
-      //
       function formatColumns_(entries) {
         var maxName = entries[0].name;
         util.toArray(entries).forEach(function(entry, i) {
@@ -315,7 +315,12 @@ jQuery(function($) {
       }
     }
     
-    $('.prompt').html('username: $ ');
+    let uname = getCookieValue("username")
+    if(uname != "") {
+      $('.prompt').html(uname+':~$ ');
+    } else {
+      $('.prompt').html('user:~$ ');
+    }
     
     // Initialize a new terminal object
     var term = new Terminal('#input-line .cmdline', '#outer output');

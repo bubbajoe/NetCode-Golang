@@ -72,7 +72,6 @@ func main() {
 	if port == "" {
 		port = "80"
 	}
-
 	server, err := socketio.NewServer(nil)
 	if err != nil {
 		log.Fatal("Socket Error: ", err)
@@ -172,19 +171,31 @@ func main() {
 			if cmd == "" {
 				response = " "
 			} else {
+				switch response {
+				case "login":
+					so.Emit("terminal:response", "password: ")
+					break
+
+				case "":
+					break
+
+				default:
+				}
 				id := getID(so.Request())
 				if id != "" {
 					var sess Session
 					sessions.Find(bson.M{"sessionID": id}).One(&sess)
-					username := sess.Username
-					if true {
+					if &sess != nil { // TODO: If session found
+						// Login required commands
 						switch cmd {
 						case "whoami":
-							response = username
+							response = sess.Username
 							break
 						case "id":
 							response = id
 							break
+						case "time":
+							response = time.Now().String()
 						default:
 							response = "netcode: " + cmd + ": command not recognized"
 						}
@@ -240,7 +251,7 @@ func main() {
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./public/")))
 	http.Handle("/", r)
 
-	log.Println("Serving at https://netcode-bubbajoe.c9users.io/")
+	log.Println("Serving at https://netcode-bubbajoe.c9users.io/ " + port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 
 	// log.Println("Serving at https://localhost" )
@@ -252,6 +263,11 @@ func tercon(z bool, a interface{}, b interface{}) interface{} {
 		return a
 	}
 	return b
+}
+
+func SetCookie(w http.ResponseWriter, name string, value string) {
+	c := &http.Cookie{Name: name, Value: encode([]byte(value))}
+	http.SetCookie(w, c)
 }
 
 func SetFlash(w http.ResponseWriter, name string, value string) {
@@ -325,7 +341,7 @@ func getUsername(request *http.Request) (username string) {
 	return username
 }
 
-func setSession(username string, response http.ResponseWriter) {
+func setSession(username string, w http.ResponseWriter) {
 	id := uuid.New().String()
 	sessions.Insert(&Session{
 		SessionID:  id,
@@ -339,7 +355,8 @@ func setSession(username string, response http.ResponseWriter) {
 			Value: encoded,
 			Path:  "/",
 		}
-		http.SetCookie(response, cookie)
+		http.SetCookie(w, cookie)
+		SetCookie(w, "username", username)
 	}
 }
 
@@ -510,8 +527,8 @@ func _register(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		redirectTarget = "/login"
 		SetFlash(w, "success", "Your account was created please log in")
+		redirectTarget = "/login"
 	}
 	http.Redirect(w, r, redirectTarget, 302)
 	log.Printf(r.Method+" - "+r.URL.Path+" - %v\n", time.Now().Sub(start))
