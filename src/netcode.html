@@ -49,28 +49,23 @@
 {{ template "navbar.html" .}}
 
 <div class="container" style="min-height:100px;z-index:0">
-
 	<h1 style="text-align:center;color:#999999;margin:0 0 20px 0">
 		<span id='filelang'>{{ .Lang }}</span> : <span id='filename'>{{ .File }}</span>
 	</h1>
-	
 	<div id="tree" class="treeview"></div>
-	
 	<form id="codebox" style="position: relative; margin-top: .5em;">
 		<textarea id='code' name='code'>{{ .Code }}</textarea>
 	</form>
 </div>
 	
-	<div id="outer" style="z-index:11;">
-	<div id="inner">
-	  <output></output>
-	  <div id="input-line" class="input-line">
-	    <div class="prompt"></div><div><input class="cmdline" autofocus /></div>
-	  </div>
-	</div>
-	</div>
-
-
+<div id="outer" style="z-index:11;">
+<div id="inner">
+  <output></output>
+  <div id="input-line" class="input-line">
+    <div class="prompt"></div><div><input class="cmdline" autofocus /></div>
+  </div>
+</div>
+</div>
 
 <!-- {{template "footer.html" .}} -->
 
@@ -81,7 +76,6 @@
 <script src="codemirror/mode/css/css.js"></script>
 <script src="codemirror/mode/htmlmixed/htmlmixed.js"></script>
 <script src="codemirror/addon/edit/matchbrackets.js"></script>
-<script src="js/script.js"></script>
 <script src="js/bootstrap-treeview.min.js"></script>
 <script src="js/live-editor.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>

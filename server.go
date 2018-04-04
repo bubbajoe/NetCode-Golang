@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/base64"
-	"encoding/json"
+	_ "encoding/json"
 	"github.com/google/uuid"
 	"github.com/googollee/go-socket.io"
 	"github.com/gorilla/mux"
@@ -13,7 +13,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 	"html/template"
 	_ "io"
-	"io/ioutil"
+	_ "io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -57,12 +57,6 @@ type TemplateData struct {
 	Username string      `json:"username,omitempty"`
 }
 
-type FSNode struct {
-	Name     string   `bson:"name"`
-	Data     []byte   `bson:"data,omitempty"`
-	Children []FSNode `bson:"children,omitempty"`
-}
-
 var cookieHandler = securecookie.New(
 	securecookie.GenerateRandomKey(64),
 	securecookie.GenerateRandomKey(32))
@@ -99,7 +93,6 @@ func main() {
 	//files = session.DB(dbName).C("files")
 	projects = session.DB(dbName).C("projects")
 	sessions = session.DB(dbName).C("sessions")
-
 	defer session.Close()
 
 	// Possible change: create a shared data system
@@ -173,8 +166,35 @@ func main() {
 
 		})
 
-		so.On("terminal:command", func(data string) {
+		so.On("terminal:command", func(cmd string) {
+			response := ""
 
+			if cmd == "" {
+				response = " "
+			} else {
+				id := getID(so.Request())
+				if id != "" {
+					var sess Session
+					sessions.Find(bson.M{"sessionID": id}).One(&sess)
+					username := sess.Username
+					if true {
+						switch cmd {
+						case "whoami":
+							response = username
+							break
+						case "id":
+							response = id
+							break
+						default:
+							response = "netcode: " + cmd + ": command not recognized"
+						}
+					}
+				} else {
+					response = "You need to log in"
+				}
+			}
+			// Add output option for data processing
+			so.Emit("terminal:response", response)
 		})
 
 		so.On("terminal:join", func(data string) {
@@ -205,14 +225,12 @@ func main() {
 	r.HandleFunc("/", homepage)
 
 	r.HandleFunc("/netcode", netcode).Methods("GET")
-	r.HandleFunc("/command", command).Methods("POST")
 	r.HandleFunc("/code", code).Methods("GET")
 	r.HandleFunc("/users/{username}", nil).Methods("GET")
 	r.HandleFunc("/code", code).Methods("GET")
 	r.HandleFunc("/projects", _projects).Methods("GET")
 	r.HandleFunc("/projects/{p_name}", nil).Methods("GET")
 
-	// Authentication
 	r.HandleFunc("/login", login).Methods("GET")
 	r.HandleFunc("/register", register).Methods("GET")
 	r.HandleFunc("/login", _login).Methods("POST")
@@ -222,7 +240,7 @@ func main() {
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./public/")))
 	http.Handle("/", r)
 
-	log.Println("Serving at http://localhost:" + port)
+	log.Println("Serving at https://netcode-bubbajoe.c9users.io/")
 	log.Fatal(http.ListenAndServe(":"+port, nil))
 
 	// log.Println("Serving at https://localhost" )
@@ -383,48 +401,6 @@ func netcode(w http.ResponseWriter, r *http.Request) {
 	log.Printf(r.Method+" - "+r.URL.Path+" - %v\n", time.Now().Sub(start))
 }
 
-func calculator(w http.ResponseWriter, r *http.Request) {
-	start := time.Now()
-
-	log.Printf(r.Method+" - "+r.URL.Path+" - %v\n", time.Now().Sub(start))
-}
-
-func command(w http.ResponseWriter, r *http.Request) {
-	// Optimize this by putting this code in the socket
-	start := time.Now()
-	response := ""
-	body, err := ioutil.ReadAll(r.Body)
-	if err != nil {
-		panic(err)
-	}
-	cmd := string(body)
-
-	if cmd == "" {
-		response = " "
-	} else {
-		id := getID(r)
-		if id != "" {
-			var sess Session
-			sessions.Find(bson.M{"sessionID": id}).One(&sess)
-			username := sess.Username
-			switch cmd {
-			case "whoami":
-				response = username
-				break
-			case "id":
-				response = id
-				break
-			default:
-				response = "netcode: " + cmd + ": command not recognized"
-			}
-		} else {
-			response = "You need to log in"
-		}
-	}
-	json.NewEncoder(w).Encode(TemplateData{Response: response})
-	log.Printf(r.Method+" - "+r.URL.Path+" - %v\n", time.Now().Sub(start))
-}
-
 func code(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 	paths := []string{
@@ -502,17 +478,18 @@ func _login(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 	username := r.FormValue("Username")
 	pass := r.FormValue("Password")
-	redirectTarget := "/login"
+	redirectTarget := r.URL.Query().Get("redirectTarget")
 	user := User{}
 	if username != "" && pass != "" {
 		err := users.Find(bson.M{"username": username}).One(&user)
 		if err != nil {
 			SetFlash(w, "error", "User does not exist")
+			redirectTarget = r.URL.String()
 		} else if CheckPasswordHash(pass, user.Password) {
 			setSession(username, w)
-			redirectTarget = "/"
 		} else {
 			SetFlash(w, "error", "Incorrect password")
+			redirectTarget = r.URL.String()
 		}
 	}
 	http.Redirect(w, r, redirectTarget, 302)
