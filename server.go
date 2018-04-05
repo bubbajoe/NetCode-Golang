@@ -57,6 +57,13 @@ type TemplateData struct {
 	Username string      `json:"username,omitempty"`
 }
 
+// ProjectRoom
+type Room struct {
+	Users         map[string]socketio.Socket
+	RecentUpdates []string
+	Text          string
+}
+
 var cookieHandler = securecookie.New(
 	securecookie.GenerateRandomKey(64),
 	securecookie.GenerateRandomKey(32))
@@ -82,66 +89,48 @@ func main() {
 	}
 	log.Println("Connecting to db at " + uri)
 	session, err := mgo.Dial(uri)
+	defer session.Close()
 
 	if err != nil {
 		log.Fatal("MongoDB Error: ", err)
 	}
 	dbName := os.Getenv("MONGODB")
-	//log.Println(dbName)
+
 	users = session.DB(dbName).C("users")
 	//files = session.DB(dbName).C("files")
 	projects = session.DB(dbName).C("projects")
 	sessions = session.DB(dbName).C("sessions")
-	defer session.Close()
 
-	// Possible change: create a shared data system
-	// to conserve server ram for scaling purposes
-	// using pointers in the variables below
-
-	// All users
 	activeUsers := make(map[string]socketio.Socket)
-	// Users per room
-	rooms := make(map[string][]string)
-	// updates before the last save
+	rooms := make(map[string]map[string]socketio.Socket)
 	recentUpdates := make(map[string][]string)
 
 	server.On("connection", func(so socketio.Socket) {
 		activeUsers[so.Id()] = so
-		//so.Join("default")
-		// Binds the socket id to the users account temporary
+
 		so.On("user:bind", func(data string) {
-			// checks to see if the current users
 			log.Println("Socket.IO - room:bind " + data)
 		})
 
-		// Joins a specific room
 		so.On("room:join", func(data string) {
 			log.Println("Socket.IO - room:join " + data)
-			// Check to see if this user is able to join the room
-			//roomName := json.Unmarshal(data)...?
 			var result Project
 			projects.Find(bson.M{"project_name": data}).One(&result)
 			room := result.Room
-			rooms[room] = append(rooms[room], so.Id())
+			rooms[room][so.Id()] = so
 			so.Join(room)
-			// Not optimal for scaling
-
 			so.Emit("code:change", result.Text)
 			for _, value := range recentUpdates[room] {
 				so.Emit("code:update", value)
 			}
 		})
 
-		// Joins a specific room
 		so.On("room:leave", func(data string) {
-			//delete(rooms[data], so.Id())
 			so.Leave(data)
 			log.Println("Socket.IO - room:leave " + data)
 		})
 
-		// Updates letter by letter
 		so.On("code:update", func(data string) {
-			// Not optimal for scaling
 			for id, socket := range activeUsers {
 				if id != so.Id() {
 					socket.Emit("code:update", data)
@@ -150,17 +139,14 @@ func main() {
 			}
 		})
 
-		// Updates new users that join session
 		so.On("code:sync", func(data string) {
 
 		})
 
-		// Saves data to database
 		so.On("code:save", func(data string) {
 
 		})
 
-		// Checks if all users in the room are in sync
 		so.On("code:check", func(data string) {
 
 		})
@@ -175,27 +161,44 @@ func main() {
 				case "login":
 					so.Emit("terminal:response", "password: ")
 					break
-
 				case "":
 					break
-
 				default:
 				}
-				id := getID(so.Request())
-				if id != "" {
+
+				if id := getID(so.Request()); id != "" {
 					var sess Session
 					sessions.Find(bson.M{"sessionID": id}).One(&sess)
-					if &sess != nil { // TODO: If session found
-						// Login required commands
+					if &sess != nil {
 						switch cmd {
 						case "whoami":
 							response = sess.Username
 							break
-						case "id":
-							response = id
+						case "room join":
+							so.Join("default")
+							response = "Room joined"
 							break
+						case "room leave":
+							so.Join("default")
+							response = "Room left"
+							break
+						case "send swarm":
+							err := so.BroadcastTo("default", "swarm", "swarm from "+sess.Username)
+							if err != nil {
+								log.Print(err)
+								response = "Could not send swarm"
+							} else {
+								response = "Swarm sent"
+							}
 						case "time":
 							response = time.Now().String()
+							break
+						case "ping":
+							so.Emit("pingpong", nil)
+							break
+						case "help":
+							response = "whoami time"
+							break
 						default:
 							response = "netcode: " + cmd + ": command not recognized"
 						}
@@ -204,25 +207,17 @@ func main() {
 					response = "You need to log in"
 				}
 			}
-			// Add output option for data processing
 			so.Emit("terminal:response", response)
 		})
 
-		so.On("terminal:join", func(data string) {
-
-		})
-
-		so.On("terminal:leave", func(data string) {
-
+		so.On("ping", func(ms uint) {
+			so.Emit("pong", ms)
 		})
 
 		so.On("user:log", func() {
 			log.Printf("active users: %d", activeUsers)
 		})
 
-		// When the user disconnects
-		// (in case of a temporary disconnection,
-		// saving the session would be a good idea)
 		so.On("disconnection", func() {
 			delete(activeUsers, so.Id())
 		})
@@ -266,8 +261,12 @@ func tercon(z bool, a interface{}, b interface{}) interface{} {
 }
 
 func SetCookie(w http.ResponseWriter, name string, value string) {
-	c := &http.Cookie{Name: name, Value: encode([]byte(value))}
+	c := &http.Cookie{Name: name, Value: value}
 	http.SetCookie(w, c)
+}
+
+func RemoveCookie(w http.ResponseWriter, name string) {
+	http.SetCookie(w, &http.Cookie{Name: name, Value: "", MaxAge: -1})
 }
 
 func SetFlash(w http.ResponseWriter, name string, value string) {
@@ -350,25 +349,15 @@ func setSession(username string, w http.ResponseWriter) {
 	})
 	value := map[string]string{"id": id}
 	if encoded, err := cookieHandler.Encode("session", value); err == nil {
-		cookie := &http.Cookie{
-			Name:  "session",
-			Value: encoded,
-			Path:  "/",
-		}
-		http.SetCookie(w, cookie)
-		SetCookie(w, "username", username)
+		http.SetCookie(w, &http.Cookie{Name: "session", Value: encoded, Path: "/"})
+		http.SetCookie(w, &http.Cookie{Name: "username", Value: username, Path: "/"})
 	}
 }
 
-func clearSession(id string, response http.ResponseWriter) {
+func clearSession(id string, w http.ResponseWriter) {
 	sessions.Remove(bson.M{"sessionID": id})
-	cookie := &http.Cookie{
-		Name:   "session",
-		Value:  "",
-		Path:   "/",
-		MaxAge: -1,
-	}
-	http.SetCookie(response, cookie)
+	RemoveCookie(w, "session")
+	RemoveCookie(w, "username")
 }
 
 // Routes

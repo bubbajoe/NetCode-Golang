@@ -8,12 +8,12 @@ jQuery(function($) {
     const $changeName = $('#filename')
     const doc = $editor.doc
     var lastChange = ""
-
-  function getCookieValue(a) {
-		var b = document.cookie.match('(^|;)\\s*' + a + '\\s*=\\s*([^;]+)');
-		return b ? b.pop() : '';
-	}
-
+    
+    function getCookieValue(a) {
+    	var b = document.cookie.match('(^|;)\\s*' + a + '\\s*=\\s*([^;]+)');
+    	return b ? b.pop() : '';
+    }
+    
     // Send and append message
     $submit.click(function() {
         var msg = $message.val().trim(); // removes excess white space from string
@@ -25,11 +25,11 @@ jQuery(function($) {
         $message.val('');
         $message.select();
     });
-
+    
     $message.click(function(e) {
-
+    
     });
-
+    
     // Enter to send
     $message.keypress(function(e){
         if(e.which == 13) { // 13 = enter key
@@ -37,7 +37,7 @@ jQuery(function($) {
             return false;
         }
     });
-
+    
     $changeLang.click(function(e) {
         if($('#changeLangInput').length == 0) {
             var filename = $(this).html();
@@ -54,7 +54,7 @@ jQuery(function($) {
             });
         }
     });
-
+    
     $changeName.click(function(e) {
         if($('#changeNameInput').length == 0) {
             var filename = $(this).html();
@@ -62,7 +62,7 @@ jQuery(function($) {
             $('#changeNameInput').val(filename);
             $('#changeNameInput').focus();
             $('#changeNameInput').select();
-
+    
             $('#changeNameInput').keypress(function(e){
                 //$(this).css("width",$(this).val().length*2);
                 if(e.which == 13) { // 13 = enter key
@@ -78,7 +78,7 @@ jQuery(function($) {
             socket.emit("code:update", JSON.stringify({data:arr[0],sessionID:getCookieValue('session')}))
         }
     });
-
+    
     socket.on('code:update',function(pkt) {
         pkt = JSON.parse(pkt)
         let data = pkt.data
@@ -104,7 +104,7 @@ jQuery(function($) {
                 );
             }, this);
     });
-
+    
     socket.on('message',function(data) {
         if(data.trim() != '') {
             $chat.append("<div id='other'>"+data+"<br/><div>"); // adds new message
@@ -136,7 +136,7 @@ jQuery(function($) {
         }
         return "";
     }
-    
+
     var Terminal = Terminal || function(cmdLineContainer, outputContainer) {
       window.URL = window.URL || window.webkitURL;
       window.requestFileSystem = window.requestFileSystem || window.webkitRequestFileSystem;
@@ -199,7 +199,6 @@ jQuery(function($) {
         }
       }
     
-      // 
       function historyHandler_(e) {
         if (history_.length) {
           if (e.keyCode == 38 || e.keyCode == 40) {
@@ -255,21 +254,37 @@ jQuery(function($) {
           input.readOnly = true;
           
           if (this.value && this.value.trim()) {
-            var args = this.value.split(' ').filter(function(val, i) {
-              return val;
-            });
-            var cmd = args[0].toLowerCase();
-            args = args.splice(1); // Remove cmd from arg list.
+            var cmd = this.value
             this.value = ""
           } else return
           
-          socket.emit("terminal:command",cmd);
+          socket.emit("terminal:command", cmd);
         }
       }
+      
+      // When client connects
+      socket.on('connection', function(socket) {
+        socket.emit('terminal:join',null);
+      });
+      
+      //
+      socket.on('disconnect', function() {
+        output("Lost connection to server")
+        //Disable commands
+      });
+      
+      socket.on('reconnect', function() {
+        output("Reconnected to server")
+        //Enable commands
+      });
     
-    socket.on('terminal:response',function(cmd) {
+      socket.on('terminal:response', function(cmd) {
         output(cmd)
-    });
+      });
+      
+      socket.on('swarm',function(text) {
+        output(text)
+      });
     
       function formatColumns_(entries) {
         var maxName = entries[0].name;
@@ -362,7 +377,6 @@ jQuery(function($) {
           				console.log("Joined as admin")
           			})) console.log("No room specified")
             	}
-          		
             } )
         }
     });
