@@ -1,0 +1,215 @@
+*, *:before, *:after {
+  box-sizing: border-box;
+}
+html, body {
+  height: 100%;
+  overflow-y: hidden;
+}
+h1, h2, h3, h4, h5, h6, ul {
+  margin: 0px;
+  padding: 0px;
+}
+li {
+  list-style-type: none;
+}
+a, label {
+  text-decoration: none;
+  cursor: pointer;
+}
+/* ----- CUSTOM STYLES  ----- */
+main {
+  position: relative;
+  max-width: 100vw;
+  min-height: 100vh;
+  margin: 0px;
+  padding: 0px;
+  font-family: 'Open Sans', sans-serif;
+  background-color: #fff;
+}
+.main-head {
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+  height: 35px;
+  background-color: #000;
+  z-index: 2;
+}
+.main-head_logo {
+  display: inline-block;
+  min-width: 210px;
+  height: 35px;
+  line-height: 35px;
+  margin: 0px;
+  padding: 0px;
+  color: #fff;
+  text-align: center;
+  font-size: 24px;
+  font-weight: 400;
+  letter-spacing: 1.8px;
+  font-family: 'Montserrat', sans-serif;
+}
+.main-head_project {
+  width: 100%;
+  height: 35px;
+  line-height: 35px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.main-head_user {
+  font-size: 12px;
+  font-weight: 400;
+  color: #fff;
+  padding-right: 20px;
+}
+.main-head .menu-icon {
+  min-width: 30px;
+  min-height: 30px;
+  margin: 0 10px 0 0;
+  fill: #fff;
+  cursor: pointer;
+  transition: transform 0.3s ease-out;
+}
+.click-rotate {
+  transform: rotate(90deg);
+}
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: 35px;
+  bottom: 0;
+  width: 210px;
+  height: auto;
+  padding: 10px;
+  background-color: #222;
+  border-right: 1px solid #000;
+  overflow-y: auto;
+  z-index: 1;
+  transition: left ease-out 240ms;
+}
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+  background-color: #000;
+}
+.sidebar::-webkit-scrollbar-thumb {
+  background-color: #000;
+  border-radius:2px;
+}
+.sidebar::-webkit-scrollbar-track {
+  -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+  background-color: #333;
+}
+.sidebar-close {
+  left: -210px;
+}
+.nav_main {
+  padding-bottom: 10px;
+}
+.nav_head {
+  margin-bottom: 4px;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+}
+.nav_item {
+  position: relative;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.nav_item a {
+  display: block;
+  width: 100%;
+  padding: 5px 0;
+  vertical-align: text-top;
+  color: #aaa;
+}
+.nav_item a:hover {
+  background-color: #000;
+  color: #fff;
+}
+.nav_item a:hover svg {
+  fill: #fff;
+}
+.sidebar-nav_icon {
+  vertical-align: middle;
+  display: inline;
+  width: 16px;
+  height: 16px;
+  padding-bottom: 2px;
+  fill: #aaa;
+}
+.cd-accordion-menu input[type=checkbox] {
+  /* hide native checkbox */
+  position: absolute;
+  opacity: 0;
+}
+.cd-accordion-menu label, .cd-accordion-menu a {
+  position: relative;
+  display: block;
+  padding: 5px;
+  color: #aaa;
+  font-size: 12px;
+  font-weight: 600;
+}
+.cd-accordion-menu label:hover, .cd-accordion-menu a:hover {
+  background-color: #000;
+  color: #fff;
+}
+.cd-accordion-menu label:hover svg, .cd-accordion-menu a:hover svg {
+  fill: #fff;
+}
+.cd-accordion-menu ul {
+  /* by default hide all sub menus */
+  display: none;
+}
+.cd-accordion-menu input[type=checkbox]:checked + label + ul, .cd-accordion-menu input[type=checkbox]:checked + label:nth-of-type(n) + ul {
+  /* use label:nth-of-type(n) to fix a bug on safari (<= 8.0.8) with multiple adjacent-sibling selectors*/
+  /* show children when item is checked */
+  display: block;
+}
+label[for^="sub"] {
+  padding-left: 10px;
+}
+li.tier-two > a {
+  padding: 5px 5px 5px 20px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 400;
+}
+.content {
+  position: fixed;
+  width: calc(100% - 210px);
+  height: auto;
+  top: 35px;
+  left: 210px;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  background: #111;
+  overflow-y: auto;
+  z-index: 0;
+  transition: left ease-out 240ms, width ease-out 240ms;
+}
+.content_full-width {
+  left: 0;
+  width: 100%;
+}
+.content-block {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  right: 20px;
+  bottom: 20px;
+  background-color: #333;
+  border: 1px solid #000;
+}

@@ -1,9 +1,3 @@
-body{
-   margin-top: 100px;
-}
-.home{
-	margin-top: 100px;
-}
 #bottom-editor {
 	background-color: red;
 	border-top: 2px solid white;
@@ -17,9 +11,22 @@ div#navbar {
 	position: relative;
 	float: left;
 }
+#nav{
+  color: red;
+}
 #tree {
 	margin-right: 10px;
 	max-width: 250px;
+}
+.custom > li > a:hover {
+    color: transparent;
+}
+div.sizable {
+    resize:both;
+    overflow:auto; /* something other than visible */
+}
+textarea {
+    resize: none;
 }
 .treeview .list-group-item{cursor:pointer}
 .treeview span.indent{margin-left:10px;margin-right:10px}
@@ -30,13 +37,30 @@ div#navbar {
 }
 #outer {
   bottom:0;
+  left: 25%;
   position: fixed;
-  width: 100%;
+  width: 50%;
   height: 400px;
   overflow-y: auto;
   margin: 0;
   z-index: -1;
-  
+}
+ul.nav li a, ul.nav li a:visited {
+  color: grey !important;
+}
+ul.nav li a:hover, ul.nav li a:active {
+  color: red !important;
+  background-color: transparent;
+} 
+.nav .open>a, .nav .open>a:focus, .nav .open>a:hover {
+  background-color: transparent;
+}
+ul.nav li.active a {
+  color: red !important;
+    background-color: transparent;
+}
+a {
+  color: inherit;
 }
 #outer {
   font-size: 11pt;
@@ -106,4 +130,8 @@ div#navbar {
   -moz-column-width: 100px;
   -o-column-width: 100px;
   column-width: 100px;
+}
+.dropdown-menu {
+  background-color: lightgrey;
+  color: black;
 }

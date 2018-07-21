@@ -6,9 +6,12 @@
 	<title>NetCode</title>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+	<script src="https://npmcdn.com/tether@1.2.4/dist/js/tether.min.js"></script>
+	<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+	<link rel="stylesheet" href="/assets/css/bootstrap.min.css"/>
+	<link rel="stylesheet" href="/assets/css/bootstrap.min.css.map"/>
+	<link rel="stylesheet" href="/assets/css/bootstrap-theme.min.css"/>
+	<link rel="stylesheet" href="/assets/css/bootstrap-theme.min.css.map"/>
     <link rel="shortcut icon" href="assets/images/gt_favicon.png">
 	<link rel="stylesheet" media="screen" href="http://fonts.googleapis.com/css?family=Open+Sans:300,400,700">
 	<link rel=stylesheet href="codemirror/lib/codemirror.css">
@@ -24,61 +27,56 @@
 	<link rel="stylesheet" href="css/style.css">
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
 	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.2.25/angular.min.js"></script>
-
-		<title>NetCode</title>
+	<title>NetCode</title>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-	<link rel="stylesheet" href="assets/css/bootstrap-theme.css" media="screen" >
 	<link rel="stylesheet" href="assets/css/main.css">
-	<style>
-		.wrapper {    
-			margin-top: 80px;
-			margin-bottom: 20px;
-		}
-		.form-signin {
-		max-width: 420px;
-		padding: 30px 38px 66px;
-		margin: 200px auto 50px auto;
-		background-color: rgb(32, 32, 32);
-		color:darkgray;
-		border: 3px dotted rgba(0,0,0,0.1);  
-		}
-		.form-signin-heading {
-		text-align:center;
-		margin-bottom: 30px;
-		}
-		.form-control {
-		position: relative;
-		font-size: 16px;
-		height: auto;
-		padding: 10px;
-		}
-		input[type="text"] {
-		margin-bottom: 5px;
-		border-bottom-left-radius: 0;
-		border-bottom-right-radius: 0;
-		}
-		input[type="password"] {
-		margin-bottom: 20px;
-		border-top-left-radius: 0;
-		border-top-right-radius: 0;
-		}
-	</style>
 </head>
 
 <body class="home">
-	<!-- Fixed navbar -->
 	{{ template "navbar.html" . }}
-	<!-- /.navbar -->
 	<div class="container" style="min-height:500px;">
+	<center>
+		<h1 style="color:white">Create a new Project!</h1>
+	</center>
+	<hr>
+	<form method="post">
+		<div class="form-group col-lg-12">
+			<div class="form-group ">
+			  <label for="usr">Project Name</label>
+			  <input type="text" class="form-control" id="usr">
+			</div>
+			<div class="form-group">
+			<br>
+			  <label for="desc">Description</label>
+			  <textarea class="form-control" rows="5" id="comment"></textarea>
+			</div>
+			<div>
+			<label for="sel1">Fork from github</label>
+		      <select class="form-control" id="sel1">
+		        <option>None</option>
+		        <option>Project This</option>
+		        <option>Project That</option>
+		        <option>Project Beast</option>
+		      </select>
+			</div>
+			<br>
+		<button class="btn btn-md" type="submit">Create Project</button>
+		</div>
+	</form>
+	
+	<center>
+		<h1 style="color:white">My Projects</h1>
+	</center>
+	<hr>
+	<center>
+		<h3 style="color:white">You have no projects! :(</h3>
+	</center>
 	</div>	<!-- /container -->
 
 	{{ template "footer.html" . }}
 
 	<!-- JavaScript libs are placed at the end of the document so the pages load faster -->
-	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-	<script src="http://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
 	<script src="assets/js/headroom.min.js"></script>
 	<script src="assets/js/jQuery.headroom.min.js"></script>
 	<script src="assets/js/template.js"></script>

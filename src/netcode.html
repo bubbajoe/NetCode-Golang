@@ -10,38 +10,29 @@
 	<title>NetCode</title>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" href="css/bootstrap.min.css">
 	<script src="https://npmcdn.com/tether@1.2.4/dist/js/tether.min.js"></script>
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-	<script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-	<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-	<script src="js/bootstrap.min.js"></script>
+	<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
+	
+	<link rel="stylesheet" href="/assets/css/jquery-ui.min.css"/>
+	<link rel="stylesheet" href="/assets/css/jquery-ui.theme.min.css"/>
+	]
+	<link rel="stylesheet" href="/assets/css/jquery-ui.structure.min.css"/>
+	<link rel="stylesheet" href="/assets/css/bootstrap.min.css"/>
+	<link rel="stylesheet" href="/assets/css/bootstrap-theme.min.css"/>
 	<link rel="stylesheet" media="screen" href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,700">
-	<!-- Custom styles for our template -->
-	<script src="assets/js/headroom.min.js"></script>
-	<script src="assets/js/jQuery.headroom.min.js"></script>
-	<script src="assets/js/template.js"></script>
-	<script src="js/bootstrap.min.js"></script>
-	<link rel="stylesheet" href="assets/css/bootstrap-theme.css" media="screen" >
 	<link rel="stylesheet" href="assets/css/main.css">
-	<!-- Added by me-->
 	<link rel="stylesheet" href="css/style.css">
-	<!-- Font Awesome-->
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
-	<link rel=stylesheet href="codemirror/lib/codemirror.css">
-	<link rel=stylesheet href="codemirror/doc/docs.css">
+	<link rel="stylesheet" href="codemirror/lib/codemirror.css">
 	<link rel="stylesheet" href="codemirror/addon/display/fullscreen.css">
-	<link rel="stylesheet" href="assets/css/bootstrap-theme.css" media="screen" >
 	<link rel="stylesheet" href="assets/css/main.css">
-	<link rel="stylesheet" href="js/bootstrap-treeview.min.css">
+	<link rel="stylesheet" href="css/bootstrap-treeview.min.css">
 	<link rel="stylesheet" href="css/style.css">
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
     <link href="https://fonts.googleapis.com/css?family=Inconsolata" rel="stylesheet" type="text/css" />
-    <script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
 	<link rel="stylesheet" href="assets/css/main.css">
-
+	<link rel="stylesheet" href="css/chatbox.css">
+	<link rel="stylesheet" href="css/treeview.css">
 </head>
 
 <body class="home">
@@ -52,21 +43,151 @@
 	<h1 style="text-align:center;color:#999999;margin:0 0 20px 0">
 		<span id='filelang'>{{ .Lang }}</span> : <span id='filename'>{{ .File }}</span>
 	</h1>
-	<div id="tree" class="treeview"></div>
 	<form id="codebox" style="position: relative; margin-top: .5em;">
 		<textarea id='code' name='code'>{{ .Code }}</textarea>
 	</form>
 </div>
-	
-<div id="outer" style="z-index:11;">
+
+<div id="tree" class="treeview"></div>
+
+<div id="outer" onclick="$('#cmd').focus()" style="z-index:11;">
 <div id="inner">
   <output></output>
   <div id="input-line" class="input-line">
-    <div class="prompt"></div><div><input class="cmdline" autofocus /></div>
+    <div class="prompt"></div><div><input id="cmd" class="cmdline" /></div>
   </div>
 </div>
 </div>
 
+<div id="chatbox" onclick="$('#chattb').focus()">
+<section class="chatbox">
+		<div class="chat-header">
+			<h5 style="color:lightgrey">&nbsp;<strong>Project Name Chat</strong></h5>
+			<span class="fa fa-angle-right">
+		</div>
+		<section class="chat-window">
+			<article class="msg-container msg-remote" id="msg-0">
+				<div class="msg-box">
+					<img class="user-img" id="user-0" src="//gravatar.com/avatar/00034587632094500000000000000000?d=retro" />
+					<div class="flr">
+						<div class="messages">
+							<p class="msg" id="msg-0">
+								Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent varius, neque non tristique tincidunt, mauris nunc efficitur erat, elementum semper justo odio id nisi.
+							</p>
+						</div>
+						<span class="timestamp"><span class="username">Name</span>&bull;<span class="posttime">3 minutes ago</span></span>
+					</div>
+				</div>
+			</article>
+			<article class="msg-container msg-self" id="msg-0">
+				<div class="msg-box">
+					<div class="flr">
+						<div class="messages">
+							<p class="msg" id="msg-1">
+								Lorem ipsum dolor sit amet
+							</p>
+							<p class="msg" id="msg-2">
+								Praesent varius
+							</p>
+						</div>
+						<span class="timestamp"><span class="username">Name</span>&bull;<span class="posttime">2 minutes ago</span></span>
+					</div>
+					<img class="user-img" id="user-0" src="//gravatar.com/avatar/56234674574535734573000000000001?d=retro" />
+				</div>
+			</article>
+			<article class="msg-container msg-remote" id="msg-0">
+				<div class="msg-box">
+					<img class="user-img" id="user-0" src="//gravatar.com/avatar/002464562345234523523568978962?d=retro" />
+					<div class="flr">
+						<div class="messages">
+							<p class="msg" id="msg-0">
+								Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+							</p>
+						</div>
+						<span class="timestamp"><span class="username">Name</span>&bull;<span class="posttime">1 minute ago</span></span>
+					</div>
+				</div>
+			</article>
+			<article class="msg-container msg-remote" id="msg-0">
+				<div class="msg-box">
+					<img class="user-img" id="user-0" src="//gravatar.com/avatar/00034587632094500000000000000000?d=retro" />
+					<div class="flr">
+						<div class="messages">
+							<p class="msg" id="msg-0">
+								Lorem ipsum dolor sit amet.
+							</p>
+						</div>
+						<span class="timestamp"><span class="username">Name</span>&bull;<span class="posttime">Now</span></span>
+					</div>
+				</div>
+			</article>
+			<article class="msg-container msg-self" id="msg-0">
+				<div class="msg-box">
+					<div class="flr">
+						<div class="messages">
+							<p class="msg" id="msg-1">
+								Lorem ipsum
+							</p>
+						</div>
+						<span class="timestamp"><span class="username">Name</span>&bull;<span class="posttime">Now</span></span>
+					</div>
+					<img class="user-img" id="user-0" src="//gravatar.com/avatar/56234674574535734573000000000001?d=retro" />
+				</div>
+			</article>
+		</section>
+		<form class="chat-input" onsubmit="return false;">
+			<input id="chattb" type="text" autocomplete="off"  placeholder="Type a message" />
+			<button>
+                    <svg style="width:24px;height:24px" viewBox="0 0 24 24"><path fill="rgba(0,0,0,.38)" d="M17,12L12,17V14H8V10H12V7L17,12M21,16.5C21,16.88 20.79,17.21 20.47,17.38L12.57,21.82C12.41,21.94 12.21,22 12,22C11.79,22 11.59,21.94 11.43,21.82L3.53,17.38C3.21,17.21 3,16.88 3,16.5V7.5C3,7.12 3.21,6.79 3.53,6.62L11.43,2.18C11.59,2.06 11.79,2 12,2C12.21,2 12.41,2.06 12.57,2.18L20.47,6.62C20.79,6.79 21,7.12 21,7.5V16.5M12,4.15L5,8.09V15.91L12,19.85L19,15.91V8.09L12,4.15Z" /></svg>
+                </button>
+		</form>
+	</section>
+</div>
+
+<div id="treeview">
+<div class="tree-view">
+    <form>
+      <ul class="root">
+        <li class="is-folder open">
+          <div class="checkbox partial-check">
+            <a class="folder-toggle" href="javascript:void(0)"></a><i class="fa fa-fw fa-folder-open-o"></i> <strong>My Documents</strong>  </label>
+          </div>
+          <ul>
+            <li class="is-folder open">
+              <div class="checkbox partial-check">
+                <a class="folder-toggle" href="javascript:void(0)"></a><i class="fa fa-fw fa-folder-o"></i> <strong>Kendo UI Project</strong>  </label>
+              </div>
+              <ul>
+                <li><div class="checkbox"><i class="fa fa-fw fa-file-code-o"></i> <span>about.html</span>  </label></div></li>
+                <li><div class="checkbox"><i class="fa fa-fw fa-file-code-o"></i> <span>index.html</span>  </label></div></li>
+                <li><div class="checkbox"><i class="fa fa-fw fa-file-image-o"></i> <span>logo.png</span>  </label></div></li>
+            </ul>
+            </li>
+            <li class="is-folder open">
+              <div class="checkbox">
+                <a class="folder-toggle" href="javascript:void(0)"></a><i class="fa fa-fw fa-folder-o"></i> <strong>New Web Site</strong>  </label>
+              </div>
+              <ul>
+                <li><i class="fa fa-fw fa-file-image-o"></i> <span>mockup.jpg</span>  </label></div></li>
+                <li><i class="fa fa-fw fa-file-pdf-o"></i> <span>research.pdf</span>  </label></div></li>
+              </ul>
+            </li>
+            <li class="is-folder open">
+              <div class="checkbox">
+                <a class="folder-toggle" href="javascript:void(0)"></a><i class="fa fa-fw fa-folder-o"></i> <strong>Reports</strong>  </label>
+              </div>
+              <ul>
+                <li><div class="checkbox"><input type="checkbox" id="check-10"><label for="check-10"> <i class="fa fa-fw fa-file-pdf-o"></i> <span>February.pdf</span>  </label></div></li>
+                <li><div class="checkbox"><input type="checkbox" id="check-11"><label for="check-11"> <i class="fa fa-fw fa-file-pdf-o"></i> <span>March.pdf</span>  </label></div></li>
+                <li><div class="checkbox"><input type="checkbox" id="check-12"><label for="check-12"> <i class="fa fa-fw fa-file-pdf-o"></i> <span>April.pdf</span>  </label></div></li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </form>
+  </div>
+</div>
 <!-- {{template "footer.html" .}} -->
 
 <script src="codemirror/lib/codemirror.js"></script>
@@ -76,15 +197,14 @@
 <script src="codemirror/mode/css/css.js"></script>
 <script src="codemirror/mode/htmlmixed/htmlmixed.js"></script>
 <script src="codemirror/addon/edit/matchbrackets.js"></script>
-<script src="js/bootstrap-treeview.min.js"></script>
+<script src="/assets/js/jquery-ui.min.js"></script>
+<script src="/assets/js/bootstrap.min.js"></script>
 <script src="js/live-editor.js"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-<script src="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
-<script src="assets/js/headroom.min.js"></script>
-<script src="assets/js/jQuery.headroom.min.js"></script>
-<script src="assets/js/template.js"></script>
 <script src="/js/socket.io.slim.js"></script>
+<script src="js/chatbox.js"></script>
+<script src="js/treeview.js"></script>
 <script>
+$('.chat-window').scrollTop($('.chat-window')[0].scrollHeight);
 var data = {{.Tree}}
 
 var editor = CodeMirror.fromTextArea(document.getElementById("code"), {

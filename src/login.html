@@ -97,7 +97,7 @@
 				oninvalid='setCustomValidity(`3-16 username with only letters, numbers, and underscores "_"`)'
 				onchange="try{setCustomValidity('')}catch(e){}" required autofocus/><input type="password" class="form-control" name="Password" placeholder="Password" required=""/>
 				<button class="btn btn-lg btn-primary btn-block"  name="Submit" value="Login" type="Submit">Login</button>
-				<a class="btn btn-lg btn-primary btn-block" style="margin-bottom:10px;margin-top:10px;"><img height="16" src="/assets/images/github-mark.png">&nbsp;Login with Github</a>  
+				<a href="/github-login" class="btn btn-lg btn-primary btn-block" style="margin-bottom:10px;margin-top:10px;"><img height="16" src="/assets/images/github-mark.png">&nbsp;Login with Github</a>  
 				<p align="center" id="error" style="color:red">{{ .Error }}</p>
 			</form>
 		</div>

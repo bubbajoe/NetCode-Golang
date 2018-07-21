@@ -1,8 +1,9 @@
 package main
 
 import (
+	"bytes"
 	"encoding/base64"
-	_ "encoding/json"
+	"encoding/json"
 	"github.com/google/uuid"
 	"github.com/googollee/go-socket.io"
 	"github.com/gorilla/mux"
@@ -15,6 +16,7 @@ import (
 	_ "io"
 	_ "io/ioutil"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	_ "strconv"
@@ -38,12 +40,21 @@ type Session struct {
 }
 
 type Project struct {
-	ID    string `bson:"_id,omitempty"`
-	Title string
-	Lang  string
-	Desc  string
-	Room  string `bson:"project_room,omitempty"`
-	Text  string `bson:"text,omitempty"`
+	ID           string `bson:"_id,omitempty"`
+	Name         string `bson:"title"`
+	Description  string `bson:"desc"`
+	RoomID       string `bson:"room"`
+	Directory_ID string `bson:"directory_id"`
+	Privacy      string `bson:"public"`
+	// map[username]role
+	Users map[string]string `bson:"users"`
+}
+
+type File struct {
+	ID        string `bson:"_id"`
+	Name      string `bson:"name"`
+	Data      []byte `bson:"data"`
+	ProjectID string `bson:"project_id"`
 }
 
 type TemplateData struct {
@@ -62,6 +73,19 @@ type Room struct {
 	Users         map[string]socketio.Socket
 	RecentUpdates []string
 	Text          string
+}
+
+type Directory struct {
+	ProjectID string `json:"project_id"`
+	Root      []Node `json:"data"`
+}
+
+type Node struct {
+	Name     string `json:"name"`
+	Type     string `json:"type"`
+	Children []Node `json:"children,omitempty"`
+	FileType string `json:"file_type,omitempty"`
+	DataLink string `json:"data_link,omitempty"`
 }
 
 var cookieHandler = securecookie.New(
@@ -98,31 +122,40 @@ func main() {
 
 	users = session.DB(dbName).C("users")
 	//files = session.DB(dbName).C("files")
+	//files = session.DB(dbName).C("directories")
 	projects = session.DB(dbName).C("projects")
 	sessions = session.DB(dbName).C("sessions")
 
 	activeUsers := make(map[string]socketio.Socket)
-	rooms := make(map[string]map[string]socketio.Socket)
+	//rooms := make(map[string]map[string]socketio.Socket)
 	recentUpdates := make(map[string][]string)
 
 	server.On("connection", func(so socketio.Socket) {
 		activeUsers[so.Id()] = so
+		log.Println(so.Request())
 
 		so.On("user:bind", func(data string) {
 			log.Println("Socket.IO - room:bind " + data)
 		})
 
-		so.On("room:join", func(data string) {
-			log.Println("Socket.IO - room:join " + data)
-			var result Project
-			projects.Find(bson.M{"project_name": data}).One(&result)
-			room := result.Room
-			rooms[room][so.Id()] = so
-			so.Join(room)
-			so.Emit("code:change", result.Text)
-			for _, value := range recentUpdates[room] {
-				so.Emit("code:update", value)
+		so.On("room:join", func(project_name string) {
+			var p Project
+			projects.Find(bson.M{"project_name": project_name}).One(&p)
+
+			if _, ok := p.Users[getUsername(so.Request())]; p.Privacy == "public" || ok {
+				so.Join(p.RoomID)
+				// log event
+			} else {
+				// log failed event
 			}
+
+			// room := result.Room
+			// rooms[room][so.Id()] = so
+			// so.Join(room)
+			// so.Emit("code:change", result.Text)
+			// for _, value := range recentUpdates[room] {
+			// 	so.Emit("code:update", value)
+			// }
 		})
 
 		so.On("room:leave", func(data string) {
@@ -131,10 +164,16 @@ func main() {
 		})
 
 		so.On("code:update", func(data string) {
-			for id, socket := range activeUsers {
-				if id != so.Id() {
-					socket.Emit("code:update", data)
-					recentUpdates["default"] = append(recentUpdates["default"], data)
+			if len(so.Rooms()) > 0 {
+				for _, e := range so.Rooms() {
+					so.BroadcastTo(e, "code:update", data)
+				}
+			} else {
+				for id, socket := range activeUsers {
+					if id != so.Id() {
+						socket.Emit("code:update", data)
+						recentUpdates["default"] = append(recentUpdates["default"], data)
+					}
 				}
 			}
 		})
@@ -151,9 +190,12 @@ func main() {
 
 		})
 
+		so.On("msg:send", func(data string) {
+
+		})
+
 		so.On("terminal:command", func(cmd string) {
 			response := ""
-
 			if cmd == "" {
 				response = " "
 			} else {
@@ -179,7 +221,7 @@ func main() {
 							response = "Room joined"
 							break
 						case "room leave":
-							so.Join("default")
+							so.Leave("default")
 							response = "Room left"
 							break
 						case "send swarm":
@@ -231,12 +273,28 @@ func main() {
 	r.HandleFunc("/", homepage)
 
 	r.HandleFunc("/netcode", netcode).Methods("GET")
+	r.HandleFunc("/netcode++", netcodepp).Methods("GET")
+	r.HandleFunc("/analyze", func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+		log.Printf(r.Method+" - "+r.URL.Path+" - %v\n", time.Now().Sub(start))
+	}).Methods("POST")
 	r.HandleFunc("/code", code).Methods("GET")
 	r.HandleFunc("/users/{username}", nil).Methods("GET")
 	r.HandleFunc("/code", code).Methods("GET")
-	r.HandleFunc("/projects", _projects).Methods("GET")
-	r.HandleFunc("/projects/{p_name}", nil).Methods("GET")
 
+	//
+	r.HandleFunc("/projects", _projects).Methods("GET")
+	//
+	r.HandleFunc("/projects/{project_id}", nil).Methods("GET")
+	// Sends a JSON file of the currect project dir
+	r.HandleFunc("/projects/{project_id}/project_dir", nil)
+	// Downloads the file from the server
+	// possible change: JSON file with information about the file and the download link
+	r.HandleFunc("/file/{file_id}", nil)
+
+	r.HandleFunc("/github-login", github_login).Methods("GET")
+	r.HandleFunc("/github-login", _github_login).Methods("POST")
+	r.HandleFunc("/github", github).Methods("POST")
 	r.HandleFunc("/login", login).Methods("GET")
 	r.HandleFunc("/register", register).Methods("GET")
 	r.HandleFunc("/login", _login).Methods("POST")
@@ -253,6 +311,16 @@ func main() {
 	// log.Fatal(http.ListenAndServeTLS(":443", "server.crt", "server.key", nil))
 }
 
+const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+
+func randomString(n int) string {
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = letterBytes[rand.Intn(len(letterBytes))]
+	}
+	return string(b)
+}
+
 func tercon(z bool, a interface{}, b interface{}) interface{} {
 	if z {
 		return a
@@ -260,8 +328,18 @@ func tercon(z bool, a interface{}, b interface{}) interface{} {
 	return b
 }
 
+func stringInSlice(a string, list []string) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
+}
+
 func SetCookie(w http.ResponseWriter, name string, value string) {
-	c := &http.Cookie{Name: name, Value: value}
+	exp := time.Now().Local().Add(time.Hour)
+	c := &http.Cookie{Name: name, Value: value, MaxAge: 60 * 60, Expires: exp, Path: "/"}
 	http.SetCookie(w, c)
 }
 
@@ -347,10 +425,11 @@ func setSession(username string, w http.ResponseWriter) {
 		LastActive: time.Now().Unix(),
 		Username:   strings.ToLower(username),
 	})
+	exp := time.Now().Local().Add(time.Hour)
 	value := map[string]string{"id": id}
 	if encoded, err := cookieHandler.Encode("session", value); err == nil {
-		http.SetCookie(w, &http.Cookie{Name: "session", Value: encoded, Path: "/"})
-		http.SetCookie(w, &http.Cookie{Name: "username", Value: username, Path: "/"})
+		http.SetCookie(w, &http.Cookie{Name: "session", Value: encoded, MaxAge: 60 * 60, Expires: exp, Path: "/"})
+		http.SetCookie(w, &http.Cookie{Name: "username", Value: username, MaxAge: 60 * 60, Expires: exp, Path: "/"})
 	}
 }
 
@@ -407,6 +486,20 @@ func netcode(w http.ResponseWriter, r *http.Request) {
 	log.Printf(r.Method+" - "+r.URL.Path+" - %v\n", time.Now().Sub(start))
 }
 
+func netcodepp(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+	paths := []string{
+		"src/netcode++.html",
+	}
+
+	tmpl := template.Must(template.ParseFiles(paths...))
+	err := tmpl.Execute(w, nil)
+	if err != nil {
+		log.Fatalf("template execution: %s", err)
+	}
+	log.Printf(r.Method+" - "+r.URL.Path+" - %v\n", time.Now().Sub(start))
+}
+
 func code(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 	paths := []string{
@@ -451,6 +544,11 @@ func login(w http.ResponseWriter, r *http.Request) {
 		"src/partials/footer.html"}
 	tmpl := template.Must(template.ParseFiles(paths...))
 
+	if getUsername(r) != "" {
+		http.Redirect(w, r, "/", 302)
+		return
+	}
+
 	var data = struct {
 		Error    string
 		Username string
@@ -458,6 +556,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 		Error:    string(GetFlash(w, r, "error")),
 		Username: getUsername(r),
 	}
+
 	err := tmpl.Execute(w, data)
 	if err != nil {
 		log.Fatalf("template execution: %s", err)
@@ -472,6 +571,12 @@ func register(w http.ResponseWriter, r *http.Request) {
 		"src/partials/navbar.html",
 		"src/partials/footer.html"}
 	tmpl := template.Must(template.ParseFiles(paths...))
+
+	// Redirect home if logged in
+	if getUsername(r) != "" {
+		http.Redirect(w, r, "/", 302)
+		return
+	}
 
 	err := tmpl.Execute(w, nil)
 	if err != nil {
@@ -527,5 +632,71 @@ func logout(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 	clearSession(getID(r), w)
 	http.Redirect(w, r, "/", 302)
+	log.Printf(r.Method+" - "+r.URL.Path+" - %v\n", time.Now().Sub(start))
+}
+
+func project_dir(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+	log.Printf(r.Method+" - "+r.URL.Path+" - %v\n", time.Now().Sub(start))
+}
+
+func github_login(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+	link := "https://github.com/login/oauth/authorize?client_id=ba7e9e7ef12b43376a3a&redirect_uri=https://net-code.herokuapp.com/github-login&code=" + randomString(10)
+	http.Redirect(w, r, link, 302)
+	log.Printf(r.Method+" - "+r.URL.Path+" - %v\n", time.Now().Sub(start))
+}
+
+func _github_login(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+
+	decoder := json.NewDecoder(r.Body)
+	var t struct {
+		Id     string `json:"client_id,omitempty"`
+		Secret string `json:"client_secret,omitempty"`
+		Code   string `json:"code"`
+		State  string `json:"state"`
+		Url    string `json:"redirect_url,omitempty"`
+	}
+	err := decoder.Decode(&t)
+	if err != nil {
+		panic(err)
+	}
+	t.Secret = "6bf416e4eb591636b4017ea61a3c4a7a12357693"
+	t.Id = "ba7e9e7ef12b43376a3a"
+	t.Url = "https://net-code.herokuapp.com/github"
+	log.Println(t)
+
+	log.Printf(r.Method+" - "+r.URL.Path+" - %v\n", time.Now().Sub(start))
+}
+
+func github(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+
+	url := "https://github.com/login/oauth/access_token"
+
+	decoder := json.NewDecoder(r.Body)
+	var t struct {
+		Id     string `json:"client_id,omitempty"`
+		Secret string `json:"client_secret,omitempty"`
+		Code   string `json:"code"`
+		State  string `json:"state"`
+		Url    string `json:"redirect_url,omitempty"`
+	}
+	err := decoder.Decode(&t)
+	if err != nil {
+		panic(err)
+	}
+	t.Secret = "6bf416e4eb591636b4017ea61a3c4a7a12357693"
+	t.Id = "ba7e9e7ef12b43376a3a"
+	t.Url = "https://net-code.herokuapp.com/github"
+	b, err := json.Marshal(t)
+	if err != nil {
+		log.Println("Something went wrong")
+	}
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(b))
+	req.Header.Set("Accept", "application/json")
+	log.Println(t)
+
 	log.Printf(r.Method+" - "+r.URL.Path+" - %v\n", time.Now().Sub(start))
 }
