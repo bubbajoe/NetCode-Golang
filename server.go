@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bytes"
+	_ "bytes"
 	"encoding/base64"
 	"encoding/json"
 	"github.com/google/uuid"
@@ -14,7 +14,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 	"html/template"
 	_ "io"
-	_ "io/ioutil"
+	"io/ioutil"
 	"log"
 	"math/rand"
 	"net/http"
@@ -30,24 +30,42 @@ type User struct {
 	Firstname string        `bson:"firstname"`
 	Lastname  string        `bson:"lastname"`
 	Password  string        `bson:"password"`
+	CreateAt  string
+}
+
+type GithubUser struct {
+	UserID    bson.ObjectId `json:"_id,omitempty"`
+	GithubID  string        `json:"id"`
+	NodeID    string        `json:"node_id"`
+	Name      string        `json:"name"`
+	Username  string        `json:"login"`
+	Firstname string        `json:"url"`
+	Lastname  string        `json:"html_url"`
+	Password  string        `json:"password"`
+	Email     string        `json:"email"`
+	CreateAt  string        `json:"create_at"`
+	ReposURL  string        `json:"repos_url"`
+	AvatarURl string        `json:"avatar_url"`
 }
 
 type Session struct {
-	ID         bson.ObjectId `bson:"_id,omitempty"`
-	Username   string        `bson:"username"`
-	LastActive int64         `bson:"last_active"`
-	SessionID  string        `bson:"sessionID"`
+	ID          bson.ObjectId `bson:"_id,omitempty"`
+	Username    string        `bson:"username"`
+	LastActive  int64         `bson:"last_active"`
+	Data        string        `bson:data,omitempty`
+	SessionID   string        `bson:"sessionID"`
+	GithubCode  string        `bson:"github_code"`
+	GithubState string        `bson:"github_state"`
 }
 
 type Project struct {
-	ID           string `bson:"_id,omitempty"`
-	Name         string `bson:"title"`
-	Description  string `bson:"desc"`
-	RoomID       string `bson:"room"`
-	Directory_ID string `bson:"directory_id"`
-	Privacy      string `bson:"public"`
-	// map[username]role
-	Users map[string]string `bson:"users"`
+	ID           string            `bson:"_id,omitempty"`
+	Name         string            `bson:"title"`
+	Description  string            `bson:"desc"`
+	RoomID       string            `bson:"room"`
+	Directory_ID string            `bson:"directory_id"`
+	Privacy      string            `bson:"public"`
+	Users        map[string]string `bson:"users"`
 }
 
 type File struct {
@@ -91,6 +109,8 @@ type Node struct {
 var cookieHandler = securecookie.New(
 	securecookie.GenerateRandomKey(64),
 	securecookie.GenerateRandomKey(32))
+
+var githubCode map[string]Session
 
 var users *mgo.Collection
 
@@ -270,8 +290,8 @@ func main() {
 
 	r := mux.NewRouter()
 
+	// Github Login
 	r.HandleFunc("/", homepage)
-
 	r.HandleFunc("/netcode", netcode).Methods("GET")
 	r.HandleFunc("/netcode++", netcodepp).Methods("GET")
 	r.HandleFunc("/analyze", func(w http.ResponseWriter, r *http.Request) {
@@ -280,21 +300,15 @@ func main() {
 	}).Methods("POST")
 	r.HandleFunc("/code", code).Methods("GET")
 	r.HandleFunc("/users/{username}", nil).Methods("GET")
-	r.HandleFunc("/code", code).Methods("GET")
-
-	//
+	//r.HandleFunc("/code", code).Methods("GET")
 	r.HandleFunc("/projects", _projects).Methods("GET")
-	//
 	r.HandleFunc("/projects/{project_id}", nil).Methods("GET")
-	// Sends a JSON file of the currect project dir
 	r.HandleFunc("/projects/{project_id}/project_dir", nil)
-	// Downloads the file from the server
-	// possible change: JSON file with information about the file and the download link
 	r.HandleFunc("/file/{file_id}", nil)
-
 	r.HandleFunc("/github-login", github_login).Methods("GET")
 	r.HandleFunc("/github-login", _github_login).Methods("POST")
-	r.HandleFunc("/github", github).Methods("POST")
+	r.HandleFunc("/github", github).Methods("GET")
+	r.HandleFunc("/github", _github).Methods("POST")
 	r.HandleFunc("/login", login).Methods("GET")
 	r.HandleFunc("/register", register).Methods("GET")
 	r.HandleFunc("/login", _login).Methods("POST")
@@ -475,7 +489,7 @@ func netcode(w http.ResponseWriter, r *http.Request) {
 	var data = TemplateData{
 		Lang:     "HTML",
 		File:     "netcode.html",
-		Code:     `let welcomeTo = "Netcode"`,
+		Code:     `<h3>Welcome to NetCode</h3>`,
 		Tree:     `[{text:"Folder 1",nodes:[{text:"Folder 2",nodes:[{text:"File 1"}]},{text:"File 2"}]},{text:"Folder 3"},{text:"Folder 4"}]`,
 		Username: getUsername(r),
 	}
@@ -640,63 +654,106 @@ func project_dir(w http.ResponseWriter, r *http.Request) {
 	log.Printf(r.Method+" - "+r.URL.Path+" - %v\n", time.Now().Sub(start))
 }
 
+// Redirects User on login With Github
 func github_login(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
-	link := "https://github.com/login/oauth/authorize?client_id=ba7e9e7ef12b43376a3a&redirect_uri=https://net-code.herokuapp.com/github-login&code=" + randomString(10)
+	state := randomString(10)
+
+	link := "https://github.com/login/oauth/authorize?client_id=ba7e9e7ef12b43376a3a&" +
+		"redirect_uri=https://netcode-bubbajoe.c9users.io/github&state=" + state
 	http.Redirect(w, r, link, 302)
 	log.Printf(r.Method+" - "+r.URL.Path+" - %v\n", time.Now().Sub(start))
 }
 
+//
 func _github_login(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
-
 	decoder := json.NewDecoder(r.Body)
 	var t struct {
-		Id     string `json:"client_id,omitempty"`
-		Secret string `json:"client_secret,omitempty"`
+		Id     string `json:"client_id"`
+		Secret string `json:"client_secret"`
 		Code   string `json:"code"`
-		State  string `json:"state"`
+		State  string `json:"state,omitempty"`
 		Url    string `json:"redirect_url,omitempty"`
+		SignUp string `json:"allow_signup,omitempty"`
 	}
 	err := decoder.Decode(&t)
 	if err != nil {
 		panic(err)
 	}
-	t.Secret = "6bf416e4eb591636b4017ea61a3c4a7a12357693"
+	t.Secret = "86b17d0af359d522090a2b896a3baffbaf8f6437"
 	t.Id = "ba7e9e7ef12b43376a3a"
 	t.Url = "https://net-code.herokuapp.com/github"
+	t.Code = ""
+	t.State = ""
+	t.SignUp = "true"
 	log.Println(t)
 
 	log.Printf(r.Method+" - "+r.URL.Path+" - %v\n", time.Now().Sub(start))
 }
 
+func _github(w http.ResponseWriter, r *http.Request) {
+	start := time.Now()
+
+	http.Redirect(w, r, "/login", 302)
+
+	log.Printf(r.Method+" - "+r.URL.Path+" - %v\n", time.Now().Sub(start))
+}
+
+// ask github for the token
 func github(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 
-	url := "https://github.com/login/oauth/access_token"
+	code := r.URL.Query().Get("code")
+	state := r.URL.Query().Get("state")
 
-	decoder := json.NewDecoder(r.Body)
-	var t struct {
-		Id     string `json:"client_id,omitempty"`
-		Secret string `json:"client_secret,omitempty"`
-		Code   string `json:"code"`
-		State  string `json:"state"`
-		Url    string `json:"redirect_url,omitempty"`
-	}
-	err := decoder.Decode(&t)
-	if err != nil {
-		panic(err)
-	}
-	t.Secret = "6bf416e4eb591636b4017ea61a3c4a7a12357693"
-	t.Id = "ba7e9e7ef12b43376a3a"
-	t.Url = "https://net-code.herokuapp.com/github"
-	b, err := json.Marshal(t)
-	if err != nil {
-		log.Println("Something went wrong")
-	}
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(b))
-	req.Header.Set("Accept", "application/json")
-	log.Println(t)
+	if code != "" {
+		log.Println(state + "/" + code)
 
+		req, _ := http.NewRequest("POST", "https://github.com/login/oauth/access_token", nil)
+		req.Header.Set("Accept", "application/json")
+
+		q := req.URL.Query()
+		q.Add("client_secret", "86b17d0af359d522090a2b896a3baffbaf8f6437")
+		q.Add("client_id", "ba7e9e7ef12b43376a3a")
+		q.Add("code", code)
+		q.Add("state", state)
+		q.Add("redirect_uri", "https://netcode-bubbajoe.c9users.io/github")
+		req.URL.RawQuery = q.Encode()
+
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		if err != nil {
+			log.Println(err)
+		}
+
+		var GHResp struct {
+			AccessToken string `json:"access_token,omitempty"`
+			TokenType   string `json:"token_type,omitempty"`
+			Scope       string `json:"scope,omitempty"`
+			Error       string `json:"state,omitempty"`
+			ErrorUri    string `json:"redirect_uri,omitempty"`
+		}
+
+		body, _ := ioutil.ReadAll(resp.Body)
+		resp.Body.Close()
+		json.Unmarshal(body, &GHResp)
+		log.Println("Token Req. Body:", string(body))
+
+		_req, _ := http.NewRequest("GET", "https://api.github.com/user?access_token="+GHResp.AccessToken, nil)
+		//_req.Header.Add("Authorization", "token "+GHResp.AccessToken)
+
+		c := &http.Client{}
+		_resp, err := c.Do(_req)
+		if err != nil {
+			log.Println(err)
+		}
+		bod, _ := ioutil.ReadAll(_resp.Body)
+		_resp.Body.Close()
+		log.Println("Auth Req Body:", string(bod))
+
+	} else {
+		log.Println("Empty code in Github Redirect. Aborting..")
+	}
 	log.Printf(r.Method+" - "+r.URL.Path+" - %v\n", time.Now().Sub(start))
 }
